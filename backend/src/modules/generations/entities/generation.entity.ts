@@ -6,7 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { GenerationStatus, LlmProvider, PushMode } from '../../../shared/Domain';
+import { GenerationStatus } from '../../../shared/Domain/enums/generation-status.enum';
+import { LlmProvider } from '../../../shared/Domain/enums/llm-provider.enum';
+import { PushMode } from '../../../shared/Domain/enums/push-mode.enum';
 
 /** One README generation job, written by the LangChain engine (Commit 5). */
 @Entity({ name: 'generations' })
@@ -17,9 +19,9 @@ export class Generation {
   @Column({ type: 'uuid', name: 'user_id' })
   userId: string;
 
-  @ManyToOne('User', 'generations')
+  @ManyToOne('UserProfile', 'generations')
   @JoinColumn({ name: 'user_id' })
-  user: any;
+  profile: any;
 
   @Column({ type: 'uuid', name: 'repo_id' })
   repoId: string;
@@ -33,19 +35,27 @@ export class Generation {
 
   @ManyToOne('Resume', { nullable: true })
   @JoinColumn({ name: 'resume_id' })
-  resume: any | null;
+  resume: any;
 
-  @Column({ type: 'enum', enum: GenerationStatus, default: GenerationStatus.QUEUED })
+  @Column({
+    type: 'enum',
+    enum: GenerationStatus,
+    default: GenerationStatus.QUEUED,
+  })
   status: GenerationStatus;
 
   @Column({ type: 'enum', enum: LlmProvider, nullable: true })
   provider: LlmProvider | null;
 
-  /** Concrete model id used (from plans.model), kept for billing/auditing. */
   @Column({ type: 'text', nullable: true })
   model: string | null;
 
-  @Column({ type: 'enum', enum: PushMode, name: 'push_mode', default: PushMode.MANUAL })
+  @Column({
+    type: 'enum',
+    enum: PushMode,
+    name: 'push_mode',
+    default: PushMode.MANUAL,
+  })
   pushMode: PushMode;
 
   @Column({ type: 'text', name: 'generated_md', nullable: true })

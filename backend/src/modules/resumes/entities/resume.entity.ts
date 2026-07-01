@@ -6,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ResumeSource } from '../../../shared/Domain';
+import { ResumeSource } from '../../../shared/Domain/enums/resume-source.enum';
 
 @Entity({ name: 'resumes' })
 export class Resume {
@@ -16,9 +16,9 @@ export class Resume {
   @Column({ type: 'uuid', name: 'user_id' })
   userId: string;
 
-  @ManyToOne('User', 'resumes')
+  @ManyToOne('UserProfile', 'resumes')
   @JoinColumn({ name: 'user_id' })
-  user: any;
+  profile: any;
 
   @Column({ type: 'enum', enum: ResumeSource })
   source: ResumeSource;

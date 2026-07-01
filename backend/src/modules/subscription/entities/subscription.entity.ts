@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { SubscriptionStatus } from '../../../shared/Domain';
+import { SubscriptionStatus } from '../../../shared/Domain/enums/subscription-status.enum';
 
 @Entity({ name: 'subscriptions' })
 export class Subscription {
@@ -20,9 +20,9 @@ export class Subscription {
   @Column({ type: 'uuid', name: 'user_id' })
   userId: string;
 
-  @OneToOne('User', 'subscription')
+  @OneToOne('UserProfile', 'subscription')
   @JoinColumn({ name: 'user_id' })
-  user: any;
+  profile: any;
 
   @Column({ type: 'uuid', name: 'plan_id' })
   planId: string;
@@ -31,7 +31,11 @@ export class Subscription {
   @JoinColumn({ name: 'plan_id' })
   plan: any;
 
-  @Column({ type: 'enum', enum: SubscriptionStatus, default: SubscriptionStatus.TRIALING })
+  @Column({
+    type: 'enum',
+    enum: SubscriptionStatus,
+    default: SubscriptionStatus.TRIALING,
+  })
   status: SubscriptionStatus;
 
   @Column({ type: 'text', name: 'stripe_customer_id', nullable: true })

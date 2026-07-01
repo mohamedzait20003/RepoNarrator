@@ -8,12 +8,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-/**
- * Stateful session record.
- * A cryptographically random secret is generated per session; only its hash is persisted.
- * The raw secret travels to the client (HttpOnly cookie) and is re-hashed on every
- * request to verify against this row, enabling server-side revocation.
- */
 @Entity({ name: 'sessions' })
 export class Session {
   @PrimaryGeneratedColumn('uuid')

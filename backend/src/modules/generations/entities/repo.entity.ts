@@ -18,9 +18,9 @@ export class Repo {
   @Column({ type: 'uuid', name: 'user_id' })
   userId: string;
 
-  @ManyToOne('User', 'repos')
+  @ManyToOne('UserProfile', 'repos')
   @JoinColumn({ name: 'user_id' })
-  user: any;
+  profile: any;
 
   @Column({ type: 'bigint', name: 'github_repo_id' })
   githubRepoId: string;

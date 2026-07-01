@@ -7,7 +7,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { TokenType } from '../../../shared/Domain';
+import { TokenType } from '../../../shared/Domain/enums/token-type.enum';
 
 /**
  * Short-lived token for email verification and password reset.

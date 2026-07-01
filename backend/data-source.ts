@@ -7,6 +7,7 @@ import { DataSource } from 'typeorm';
 dotenv.config({ path: resolve(__dirname, '../.env') });
 
 import { User } from './src/modules/identity/entities/user.entity';
+import { UserProfile } from './src/modules/identity/entities/user-profile.entity';
 import { Token } from './src/modules/identity/entities/token.entity';
 import { Session } from './src/modules/identity/entities/session.entity';
 import { Plan } from './src/modules/subscription/entities/plan.entity';
@@ -22,6 +23,7 @@ const AppDataSource = new DataSource({
   url: process.env.DATABASE_URL,
   entities: [
     User,
+    UserProfile,
     Token,
     Session,
     Plan,

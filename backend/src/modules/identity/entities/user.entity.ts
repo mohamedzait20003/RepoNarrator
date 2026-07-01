@@ -15,7 +15,6 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  /** Null for admin-role users who sign up via email rather than GitHub OAuth. */
   @Index({ unique: true })
   @Column({ type: 'bigint', name: 'github_id', nullable: true })
   githubId: string | null;
@@ -33,31 +32,20 @@ export class User {
   @Column({ type: 'text', name: 'avatar_url', nullable: true })
   avatarUrl: string | null;
 
-  /** GitHub access token, AES-256 encrypted at rest. Null for non-OAuth users. */
-  @Column({ type: 'text', name: 'access_token_enc', nullable: true })
-  accessTokenEnc: string | null;
+  /** Encrypted GitHub OAuth access token (AES-256). Null for non-OAuth users. */
+  @Column({ type: 'text', name: 'github_oauth_token_enc', nullable: true })
+  githubOauthTokenEnc: string | null;
 
-  /** Bcrypt hash. Only set for email+password accounts (support / super_admin roles). */
+  /** Bcrypt hash. Set only for email+password accounts (support / super_admin roles). */
   @Column({ type: 'text', name: 'password_hash', nullable: true })
   passwordHash: string | null;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
-  @OneToOne('Subscription', 'user')
-  subscription: any;
-
-  @OneToMany('UsageCounter', 'user')
-  usageCounters: any[];
-
-  @OneToMany('Resume', 'user')
-  resumes: any[];
-
-  @OneToMany('Repo', 'user')
-  repos: any[];
-
-  @OneToMany('Generation', 'user')
-  generations: any[];
+  /** Application profile — holds subscription, resumes, repos, generations. */
+  @OneToOne('UserProfile', 'user')
+  profile: any;
 
   @OneToMany('Token', 'user')
   tokens: any[];

@@ -5,8 +5,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ModelTier, PlanTier } from '../../../shared/Domain';
-import type { PlanFeatures } from '../../../shared/Domain';
+import { ModelTier } from '../../../shared/Domain/enums/model-tier.enum';
+import { PlanTier } from '../../../shared/Domain/enums/plan-tier.enum';
+import type { PlanFeatures } from '../../../shared/Domain/interfaces/plan-features.interface';
 
 /** Subscription plan definition. Tunable via DB without a redeploy. */
 @Entity({ name: 'plans' })
@@ -29,7 +30,12 @@ export class Plan {
   @Column({ type: 'int', name: 'generation_limit', default: 5 })
   generationLimit: number;
 
-  @Column({ type: 'enum', enum: ModelTier, name: 'model_tier', default: ModelTier.ECONOMY })
+  @Column({
+    type: 'enum',
+    enum: ModelTier,
+    name: 'model_tier',
+    default: ModelTier.ECONOMY,
+  })
   modelTier: ModelTier;
 
   /**

@@ -17,9 +17,9 @@ export class UsageCounter {
   @Column({ type: 'uuid', name: 'user_id' })
   userId: string;
 
-  @ManyToOne('User', 'usageCounters')
+  @ManyToOne('UserProfile', 'usageCounters')
   @JoinColumn({ name: 'user_id' })
-  user: any;
+  profile: any;
 
   /** First day of the billing period (ISO date string, e.g. "2026-06-01"). */
   @Column({ type: 'date', name: 'period_start' })
