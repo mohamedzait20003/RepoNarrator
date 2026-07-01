@@ -38,9 +38,6 @@ export class Subscription {
   })
   status: SubscriptionStatus;
 
-  @Column({ type: 'text', name: 'stripe_customer_id', nullable: true })
-  stripeCustomerId: string | null;
-
   @Column({ type: 'text', name: 'stripe_subscription_id', nullable: true })
   stripeSubscriptionId: string | null;
 

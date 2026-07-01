@@ -1,4 +1,5 @@
 import {
+  Column,
   CreateDateColumn,
   Entity,
   JoinColumn,
@@ -8,22 +9,29 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-/**
- * Application-level profile for a user. Shares its primary key with the
- * `users` table (same UUID), keeping the FK column name `user_id` meaningful
- * in all child tables while cleanly separating auth identity from app data.
- */
 @Entity({ name: 'user_profiles' })
 export class UserProfile {
-  /** Same UUID as the parent User row. */
   @PrimaryColumn({ type: 'uuid' })
   id: string;
 
+  @Column({ type: 'text', name: 'stripe_customer_id', nullable: true })
+  stripeCustomerId: string | null;
+
+  // ── Relations ─────────────────────────────────────────────────────────
+
+  /**
+   * Back-reference to the auth row.
+   * @JoinColumn declares that user_profiles.id is the FK to users.id.
+   */
   @OneToOne('User', 'profile')
   @JoinColumn({ name: 'id' })
   user: any;
 
-  @OneToOne('Subscription', 'profile')
+  /**
+   * The user's active subscription (FK is on the subscriptions side).
+   * Load explicitly; plan details are available via subscription.plan (eager).
+   */
+  @OneToOne('Subscription', 'profile', { cascade: ['remove'], nullable: true })
   subscription: any;
 
   @OneToMany('UsageCounter', 'profile')

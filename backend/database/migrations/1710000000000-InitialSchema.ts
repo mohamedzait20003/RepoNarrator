@@ -68,9 +68,15 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         CONSTRAINT "FK_tokens_user" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
       )
     `);
-    await queryRunner.query(`CREATE INDEX "IDX_tokens_user"       ON "tokens" ("user_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_tokens_hash"       ON "tokens" ("token_hash")`);
-    await queryRunner.query(`CREATE INDEX "IDX_tokens_expires_at" ON "tokens" ("expires_at")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_tokens_user"       ON "tokens" ("user_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_tokens_hash"       ON "tokens" ("token_hash")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_tokens_expires_at" ON "tokens" ("expires_at")`,
+    );
 
     await queryRunner.query(`
       CREATE TABLE "sessions" (
@@ -87,15 +93,20 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         CONSTRAINT "FK_sessions_user" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE
       )
     `);
-    await queryRunner.query(`CREATE INDEX "IDX_sessions_user"       ON "sessions" ("user_id")`);
-    await queryRunner.query(`CREATE INDEX "IDX_sessions_expires_at" ON "sessions" ("expires_at")`);
+    await queryRunner.query(
+      `CREATE INDEX "IDX_sessions_user"       ON "sessions" ("user_id")`,
+    );
+    await queryRunner.query(
+      `CREATE INDEX "IDX_sessions_expires_at" ON "sessions" ("expires_at")`,
+    );
 
     // ── Identity: user_profiles (application data, shared PK with users) ─
     await queryRunner.query(`
       CREATE TABLE "user_profiles" (
-        "id"         UUID        NOT NULL,
-        "created_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
-        "updated_at" TIMESTAMPTZ NOT NULL DEFAULT now(),
+        "id"                UUID        NOT NULL,
+        "stripe_customer_id" TEXT,
+        "created_at"        TIMESTAMPTZ NOT NULL DEFAULT now(),
+        "updated_at"        TIMESTAMPTZ NOT NULL DEFAULT now(),
         CONSTRAINT "PK_user_profiles"      PRIMARY KEY ("id"),
         CONSTRAINT "FK_user_profiles_user" FOREIGN KEY ("id") REFERENCES "users"("id") ON DELETE CASCADE
       )
@@ -124,7 +135,6 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         "user_id"                UUID        NOT NULL,
         "plan_id"                UUID        NOT NULL,
         "status"                 "public"."subscription_status_enum" NOT NULL DEFAULT 'trialing',
-        "stripe_customer_id"     TEXT,
         "stripe_subscription_id" TEXT,
         "current_period_end"     TIMESTAMPTZ,
         "created_at"             TIMESTAMPTZ NOT NULL DEFAULT now(),

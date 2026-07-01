@@ -4,7 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import type { LoggerOptions } from 'typeorm';
 import configuration from '../shared/Configuration/configuration';
 import { User } from '../modules/identity/entities/user.entity';
-import { UserProfile } from '../modules/identity/entities/user-profile.entity';
+import { UserProfile } from '../modules/identity/entities/profile.entity';
 import { Token } from '../modules/identity/entities/token.entity';
 import { Session } from '../modules/identity/entities/session.entity';
 import { Plan } from '../modules/subscription/entities/plan.entity';
