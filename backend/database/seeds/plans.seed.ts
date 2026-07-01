@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { Plan } from '../../src/modules/plans/entities/plan.entity';
+import { Plan } from '../../src/modules/subscription/entities/plan.entity';
 import { ModelTier, PlanTier } from '../../src/shared/Domain';
 
 export async function seedPlans(dataSource: DataSource): Promise<void> {

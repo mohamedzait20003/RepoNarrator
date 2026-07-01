@@ -7,18 +7,18 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-/** Immutable record of admin actions. Never updated or deleted. */
+/** Immutable record of privileged user actions. Never updated or deleted. */
 @Entity({ name: 'audit_logs' })
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', name: 'admin_id' })
-  adminId: string;
+  @Column({ type: 'uuid', name: 'user_id' })
+  userId: string;
 
-  @ManyToOne('Admin', 'auditLogs')
-  @JoinColumn({ name: 'admin_id' })
-  admin: any;
+  @ManyToOne('User', { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: any;
 
   @Column({ type: 'text' })
   action: string;

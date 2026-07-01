@@ -1,9 +1,5 @@
 import { FindManyOptions, FindOneOptions } from 'typeorm';
 
-/**
- * Generic repository contract. Each module's concrete repository implements
- * this interface so services depend on the abstraction, not TypeORM directly.
- */
 export interface IRepository<T> {
   findById(id: string): Promise<T | null>;
   findOne(options: FindOneOptions<T>): Promise<T | null>;
