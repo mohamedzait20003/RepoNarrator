@@ -17,11 +17,8 @@ export class UserProfile {
   @Column({ type: 'text', name: 'stripe_customer_id', nullable: true })
   stripeCustomerId: string | null;
 
-  // ── Relations ─────────────────────────────────────────────────────────
-
   /**
    * Back-reference to the auth row.
-   * @JoinColumn declares that user_profiles.id is the FK to users.id.
    */
   @OneToOne('User', 'profile')
   @JoinColumn({ name: 'id' })

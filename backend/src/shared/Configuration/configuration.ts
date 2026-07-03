@@ -48,6 +48,18 @@ export default () => ({
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
   },
 
+  mail: {
+    host: process.env.MAIL_HOST ?? 'localhost',
+    port: parseInt(process.env.MAIL_PORT ?? '587', 10),
+    secure: process.env.MAIL_SECURE === 'true',
+    username: process.env.MAIL_USERNAME ?? '',
+    password: process.env.MAIL_PASSWORD ?? '',
+    fromEmail: process.env.MAIL_FROM_EMAIL ?? 'noreply@reponarrator.com',
+    fromName: process.env.MAIL_FROM_NAME ?? 'RepoNarrator',
+    /** Filesystem directory for template overrides ({view}.hbs). */
+    templatesPath: process.env.MAIL_TEMPLATES_PATH ?? '',
+  },
+
   llm: {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? '',
     openaiApiKey: process.env.OPENAI_API_KEY ?? '',
