@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import cookieParser from 'cookie-parser';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -8,6 +9,7 @@ import { ResponseInterceptor } from '../shared/Common/interceptors/response.inte
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser());
   app.setGlobalPrefix('api/v1');
 
   app.useGlobalPipes(
@@ -31,4 +33,4 @@ async function bootstrap() {
   console.log(`RepoNarrator API running on http://localhost:${port}/api/v1`);
 }
 
-bootstrap();
+void bootstrap();

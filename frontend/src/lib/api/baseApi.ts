@@ -1,37 +1,81 @@
-const BASE_URL = (import.meta.env['VITE_API_URL'] as string | undefined) ?? 'http://localhost:4000';
+import axios, { type InternalAxiosRequestConfig } from "axios";
 
-interface RequestOptions extends Omit<RequestInit, 'body'> {
-  body?: unknown;
-}
+import { useStore } from "@/store";
+import type { ApiResponse } from "@/lib/models/baseModel";
 
-async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, ...rest } = options;
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:8080/api";
 
-  const res = await fetch(`${BASE_URL}/api/v1${path}`, {
-    ...rest,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...rest.headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+export const baseApi = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw Object.assign(new Error(err.message ?? res.statusText), { status: res.status });
+  withCredentials: true,
+  timeout: 10_000,
+});
+
+baseApi.interceptors.request.use((config) => {
+  const accessToken = useStore.getState().accessToken;
+
+  if (accessToken) {
+    config.headers["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  // 204 No Content
-  if (res.status === 204) return undefined as T;
+  return config;
+}, (error) => Promise.reject(error));
 
-  const json = (await res.json()) as { data: T };
-  return json.data;
+let refreshPromise: Promise<string> | null = null;
+
+export function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    refreshPromise = baseApi.post<ApiResponse<{ AccessToken: string }>>("/auth/refresh").then((res) => {
+      const token = res.data?.Data?.AccessToken;
+      if (!token) throw new Error("Malformed refresh response.");
+      useStore.getState().setAccessToken(token);
+      return token;
+    }).finally(() => {
+      refreshPromise = null;
+    });
+  }
+
+  return refreshPromise;
 }
 
-export const api = {
-  get: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'GET' }),
-  post: <T>(path: string, body?: unknown, options?: RequestOptions) => request<T>(path, { ...options, method: 'POST', body }),
-  patch: <T>(path: string, body?: unknown, options?: RequestOptions) => request<T>(path, { ...options, method: 'PATCH', body }),
-  delete: <T>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: 'DELETE' }),
-};
+
+type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
+const isAuthEndpoint = (url?: string) => !!url && (url.includes("/auth/refresh") || url.includes("/auth/login"));
+
+baseApi.interceptors.response.use((response) => response, async (error) => {
+  const status = error?.response?.status;
+  const original = error?.config as RetriableConfig | undefined;
+
+  if (status === 401 && original && !original._retry && !isAuthEndpoint(original.url)) {
+    original._retry = true;
+    try {
+      const token = await refreshAccessToken();
+      original.headers.set?.("Authorization", `Bearer ${token}`);
+      return baseApi(original);
+    } catch {
+      useStore.getState().logout();
+      if (typeof window !== "undefined")
+        window.location.href = "/";
+
+      return Promise.reject(new Error("Session expired. Please sign in again."));
+    }
+  }
+
+  if (status === 401) {
+    useStore.getState().logout();
+    if (typeof window !== "undefined") window.location.href = "/";
+  }
+
+  if (status === 403 && typeof window !== "undefined") {
+    window.location.href = "/unauthorized";
+  }
+
+  const message = error.response?.data?.Message ?? error.response?.data?.message ?? error.message ?? "Something went wrong";
+
+  return Promise.reject(new Error(message));
+});

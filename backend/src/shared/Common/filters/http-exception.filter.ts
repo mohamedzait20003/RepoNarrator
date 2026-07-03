@@ -8,12 +8,12 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-interface ErrorBody {
-  statusCode: number;
-  message: string | string[];
-  error: string;
-  path: string;
-  timestamp: string;
+interface ApiErrorResponse {
+  Message: string;
+  Error: {
+    Code: string;
+    Type: string;
+  };
 }
 
 @Catch()
@@ -22,10 +22,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const res = ctx.getResponse<Response>();
+    const req = ctx.getRequest<Request>();
 
-    const status =
+    const status: HttpStatus =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
@@ -35,26 +35,33 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     const message =
       typeof exceptionResponse === 'object' && exceptionResponse !== null
-        ? (exceptionResponse as any).message ?? 'Internal server error'
+        ? (((exceptionResponse as Record<string, unknown>).message as string) ??
+          'Internal server error')
         : status === HttpStatus.INTERNAL_SERVER_ERROR
           ? 'Internal server error'
-          : String(exceptionResponse);
+          : String(exceptionResponse ?? '');
 
-    const body: ErrorBody = {
-      statusCode: status,
-      message,
-      error:
-        typeof exceptionResponse === 'object' && exceptionResponse !== null
-          ? (exceptionResponse as any).error ?? HttpStatus[status]
-          : HttpStatus[status],
-      path: request.url,
-      timestamp: new Date().toISOString(),
+    const code =
+      typeof exceptionResponse === 'object' && exceptionResponse !== null
+        ? (((exceptionResponse as Record<string, unknown>).error as string) ??
+          HttpStatus[status])
+        : HttpStatus[status];
+
+    const body: ApiErrorResponse = {
+      Message: Array.isArray(message) ? message.join('; ') : message,
+      Error: {
+        Code: code,
+        Type: HttpStatus[status] ?? 'UnknownError',
+      },
     };
 
-    if (status >= 500) {
-      this.logger.error(`${request.method} ${request.url}`, exception instanceof Error ? exception.stack : String(exception));
+    if (Number(status) >= 500) {
+      this.logger.error(
+        `${req.method} ${req.url}`,
+        exception instanceof Error ? exception.stack : String(exception),
+      );
     }
 
-    response.status(status).json(body);
+    res.status(status).json(body);
   }
 }

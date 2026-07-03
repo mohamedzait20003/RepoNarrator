@@ -47,6 +47,7 @@ export class InitialSchema1710000000000 implements MigrationInterface {
         "github_oauth_token_enc" TEXT,
         "password_hash"         TEXT,
         "role"                  "public"."user_role_enum" NOT NULL DEFAULT 'user',
+        "email_verified_at"     TIMESTAMPTZ,
         "created_at"            TIMESTAMPTZ NOT NULL DEFAULT now(),
         "updated_at"            TIMESTAMPTZ NOT NULL DEFAULT now(),
         CONSTRAINT "PK_users"           PRIMARY KEY ("id"),

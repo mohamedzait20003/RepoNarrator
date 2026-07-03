@@ -43,6 +43,10 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
+  /** Set when the user's email is confirmed. Null = unverified. */
+  @Column({ type: 'timestamptz', name: 'email_verified_at', nullable: true })
+  emailVerifiedAt: Date | null;
+
   /** Application profile — holds subscription, resumes, repos, generations. */
   @OneToOne('UserProfile', 'user')
   profile: any;

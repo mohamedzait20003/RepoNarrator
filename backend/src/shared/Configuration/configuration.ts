@@ -11,16 +11,35 @@ export default () => ({
   },
 
   auth: {
-    jwtSecret: process.env.JWT_SECRET ?? 'change-me',
-    jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '15m',
+    /** Signing key for short-lived access tokens. */
+    accessSecret: process.env.JWT_ACCESS_SECRET ?? 'change-access-secret',
+    accessExpiry: process.env.JWT_ACCESS_EXPIRES_IN ?? '15m',
+
+    /** Signing key for long-lived refresh tokens (separate from access). */
+    refreshSecret: process.env.JWT_REFRESH_SECRET ?? 'change-refresh-secret',
+    refreshExpiry: process.env.JWT_REFRESH_EXPIRES_IN ?? '7d',
+
+    /**
+     * HMAC key for the session digest embedded in both tokens.
+     * Allows cross-validating an access/refresh pair with no DB hit.
+     */
+    digestSecret: process.env.DIGEST_SECRET ?? 'change-digest-secret',
+
+    /** HttpOnly cookie name that carries the refresh token. */
+    refreshCookieName: process.env.REFRESH_COOKIE_NAME ?? 'rnt',
+
+    /** AES-256 key (64 hex chars) for encrypting stored GitHub OAuth tokens. */
     tokenEncryptionKey: process.env.TOKEN_ENCRYPTION_KEY ?? '',
+
+    /** Required email domain suffix for support / super_admin role accounts. */
     adminEmailDomain: process.env.ADMIN_EMAIL_DOMAIN ?? 'reponarratoradmin.com',
+
     github: {
       clientId: process.env.GITHUB_CLIENT_ID ?? '',
       clientSecret: process.env.GITHUB_CLIENT_SECRET ?? '',
       callbackUrl:
         process.env.GITHUB_CALLBACK_URL ??
-        'http://localhost:4000/auth/github/callback',
+        'http://localhost:4000/api/v1/auth/github/callback',
     },
   },
 
