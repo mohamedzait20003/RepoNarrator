@@ -18,7 +18,7 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "seed": "ts-node database/seeds/run-seed.ts",
-    "worker:email": "ts-node workers/email.worker.ts",
+    "worker:mail": "ts-node workers/mail/mail.worker.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

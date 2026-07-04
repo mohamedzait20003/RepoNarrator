@@ -4,7 +4,7 @@ import { Queue } from 'bullmq';
 import IORedis from 'ioredis';
 
 import type { BaseMailer } from '../../../shared/Mail/base.mailer';
-import type { EmailJobPayload } from '../../../../workers/email.worker';
+import type { EmailJobPayload } from '../../../../workers/mail/types';
 import { VerificationMailer } from '../mailers/Verification.Mailer';
 import { PasswordResetMailer } from '../mailers/PasswordReset.Mailer';
 
