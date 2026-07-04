@@ -2,6 +2,10 @@ export default () => ({
   port: parseInt(process.env.PORT ?? '4000', 10),
   nodeEnv: process.env.NODE_ENV ?? 'development',
 
+  app: {
+    frontendUrl: process.env.FRONTEND_URL ?? 'http://localhost:3000',
+  },
+
   database: {
     url: process.env.DATABASE_URL,
   },
@@ -49,6 +53,8 @@ export default () => ({
   },
 
   mail: {
+    /** 'smtp' sends via Nodemailer. 'log' prints to console — no SMTP needed in dev. */
+    driver: process.env.MAIL_DRIVER ?? 'smtp',
     host: process.env.MAIL_HOST ?? 'localhost',
     port: parseInt(process.env.MAIL_PORT ?? '587', 10),
     secure: process.env.MAIL_SECURE === 'true',

@@ -8,6 +8,7 @@ import { Token } from './entities/token.entity';
 
 import { TokenService } from './services/token.service';
 import { AuthService } from './services/auth.service';
+import { MailFactory } from './factories/Mail.Factory';
 
 import { GithubController } from './controllers/github.controller';
 import { SignUpController } from './controllers/sign-up.controller';
@@ -33,7 +34,7 @@ import { EmailVerifyController } from './controllers/email-verify.controller';
     RefreshController,
     EmailVerifyController,
   ],
-  providers: [TokenService, AuthService],
+  providers: [TokenService, AuthService, MailFactory],
   exports: [TokenService],
 })
 export class IdentityModule {}

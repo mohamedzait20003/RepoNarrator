@@ -20,9 +20,7 @@ import { TokenService, AuthResponseData, TokenPair } from './token.service';
 import { SignUpDto } from '../dto/sign-up.dto';
 import { SignInDto } from '../dto/sign-in.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
-import { MailService } from '../../../shared/Mail/mail.service';
-import { VerificationMailer } from '../mailers/verification.mailer';
-import { PasswordResetMailer } from '../mailers/password-reset.mailer';
+import { MailFactory } from '../factories/Mail.Factory';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -52,7 +50,7 @@ export class AuthService {
     @InjectRepository(Token) private readonly tokens: Repository<Token>,
     private readonly tokenService: TokenService,
     private readonly config: ConfigService,
-    private readonly mailService: MailService,
+    private readonly mailFactory: MailFactory,
   ) {
     this.adminEmailDomain = this.config.get<string>('auth.adminEmailDomain')!;
   }
@@ -126,11 +124,9 @@ export class AuthService {
 
     const rawToken = await this.issueToken(user.id, TokenType.VERIFICATION);
 
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const frontendUrl = this.config.get<string>('app.frontendUrl')!;
     const url = `${frontendUrl}/auth/verify-email?token=${rawToken}`;
-    await this.mailService.send(
-      new VerificationMailer(user.email!, user.name, url),
-    );
+    await this.mailFactory.sendVerification(user.email!, user.name, url);
   }
 
   // ── Email sign-in ─────────────────────────────────────────────────────────
@@ -164,11 +160,9 @@ export class AuthService {
 
     const rawToken = await this.issueToken(user.id, TokenType.PASS_RESET);
 
-    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const frontendUrl = this.config.get<string>('app.frontendUrl')!;
     const url = `${frontendUrl}/auth/reset-password?token=${rawToken}`;
-    await this.mailService.send(
-      new PasswordResetMailer(user.email!, user.name, url),
-    );
+    await this.mailFactory.sendPasswordReset(user.email!, user.name, url);
   }
 
   // ── Reset password ────────────────────────────────────────────────────────

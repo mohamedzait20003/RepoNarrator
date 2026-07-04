@@ -2,22 +2,22 @@ import { BaseMailer } from '../../../shared/Mail/base.mailer';
 import type { Envelope } from '../../../shared/Mail/envelope';
 import type { MailContent } from '../../../shared/Mail/mail-content';
 
-export interface VerificationData {
-  name: string;
+export interface PasswordResetData {
   url: string;
   subject: string;
 }
 
 /** Body fragment rendered inside BaseMail.hbs. */
 const TEMPLATE = /* html */ `
-<h2>Welcome to RepoNarrator{{#if name}}, <strong>{{name}}</strong>{{/if}}!</h2>
+<h2>Reset your password</h2>
 <p>
-  You're one step away. Click the button below to verify your email address
-  and activate your account. The link expires in <strong>1 hour</strong>.
+  We received a request to reset the password for your RepoNarrator account.
+  Click the button below to choose a new one.
+  The link expires in <strong>1 hour</strong>.
 </p>
 
 <div class="email-cta">
-  <a href="{{url}}" class="btn">Verify Email Address</a>
+  <a href="{{url}}" class="btn">Reset Password</a>
 </div>
 
 <hr class="divider" />
@@ -28,15 +28,16 @@ const TEMPLATE = /* html */ `
 </p>
 
 <p style="color:#9AA1AD;font-size:13px;margin-top:24px">
-  If you didn't create a RepoNarrator account you can safely ignore this email.
+  If you didn't request a password reset you can safely ignore this email —
+  your password will not change.
 </p>
 `;
 
-export class VerificationMailer extends BaseMailer<VerificationData> {
+export class PasswordResetMailer extends BaseMailer<PasswordResetData> {
   constructor(
     private readonly toEmail: string,
     private readonly toName: string | null,
-    private readonly verificationUrl: string,
+    private readonly resetUrl: string,
   ) {
     super();
   }
@@ -45,19 +46,18 @@ export class VerificationMailer extends BaseMailer<VerificationData> {
     return {
       toEmail: this.toEmail,
       toName: this.toName ?? this.toEmail,
-      subject: 'Verify your RepoNarrator email',
+      subject: 'Reset your RepoNarrator password',
     };
   }
 
   content(): MailContent {
-    return { view: 'verify-email', template: TEMPLATE };
+    return { view: 'password-reset', template: TEMPLATE };
   }
 
-  templateData(): VerificationData {
+  templateData(): PasswordResetData {
     return {
-      name: this.toName ?? '',
-      url: this.verificationUrl,
-      subject: 'Verify your RepoNarrator email',
+      url: this.resetUrl,
+      subject: 'Reset your RepoNarrator password',
     };
   }
 }

@@ -40,3 +40,7 @@ export interface UserProfile {
   role: Role;
   subscription: Subscription | null;
 }
+
+// Requests
+
+// Responses

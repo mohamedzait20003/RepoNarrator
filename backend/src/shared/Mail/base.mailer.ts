@@ -4,36 +4,35 @@ import type { MailContent } from './mail-content';
 /**
  * Base class for all mailers (Laravel / .NET Mailable pattern).
  *
- * Concrete mailers declare what to send (`envelope`) and which template
- * to render (`content`), then populate template variables with `with()`.
+ * Generic parameter `T` is the exact shape of template variables the mailer
+ * provides. TypeScript enforces at compile time that `templateData()` returns
+ * all required fields — no silent typo failures at render time.
  *
  * @example
- * export class VerificationMailer extends BaseMailer {
- *   constructor(user: User, url: string) {
- *     super();
- *     this.with('name', user.name).with('url', url);
- *   }
- *   envelope() { return { toEmail: user.email, toName: user.name, subject: 'Verify your email' }; }
- *   content()  { return { view: 'verify-email', template: VERIFY_EMAIL_TEMPLATE }; }
+ * interface WelcomeData { name: string; url: string }
+ *
+ * export class WelcomeMailer extends BaseMailer<WelcomeData> {
+ *   templateData(): WelcomeData { return { name: this.name, url: this.url }; }
+ *   envelope(): Envelope { ... }
+ *   content():  MailContent { ... }
  * }
  */
-export abstract class BaseMailer {
-  protected readonly data: Record<string, unknown> = {};
-
+export abstract class BaseMailer<T extends object> {
   /** Destination and subject of the email. */
   abstract envelope(): Envelope;
 
-  /** Which template to render and (optionally) its inline source. */
+  /** Which template to render (view name + optional inline source). */
   abstract content(): MailContent;
 
-  /** Fluent helper — adds a variable available inside the template as `{{key}}`. */
-  protected with(key: string, value: unknown): this {
-    this.data[key] = value;
-    return this;
-  }
+  /**
+   * Returns the typed template variables for this mailer.
+   * Replaces the old mutable `with()` accumulator — fields are now defined
+   * as a plain return value, which TypeScript can fully type-check.
+   */
+  abstract templateData(): T;
 
-  /** Returns a snapshot of the template data (called by MailService). */
-  getData(): Record<string, unknown> {
-    return { ...this.data };
+  /** Called by MailService and MailFactory to retrieve the resolved data. */
+  getData(): T {
+    return this.templateData();
   }
 }

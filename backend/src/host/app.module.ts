@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import type { LoggerOptions } from 'typeorm';
@@ -15,7 +15,8 @@ import { Repo } from '../modules/generations/entities/repo.entity';
 import { Generation } from '../modules/generations/entities/generation.entity';
 import { AuditLog } from '../modules/analytics/entities/audit-log.entity';
 import { IdentityModule } from '../modules/identity/identity.module';
-import { MailModule } from '../shared/Mail/mail.module';
+import { TemplateRenderer } from '../shared/Services/template-renderer.service';
+import { MailService } from '../shared/Services/mail.service';
 
 const ENTITIES = [
   User,
@@ -31,15 +32,19 @@ const ENTITIES = [
   AuditLog,
 ];
 
+/**
+ * Root host module. Marked @Global() so every imported feature module can
+ * inject shared services (MailService, …) without any additional imports.
+ *
+ * Add new cross-cutting services to SHARED_PROVIDERS as they are created.
+ */
+@Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
     }),
-
-    MailModule,
-    IdentityModule,
 
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -54,6 +59,12 @@ const ENTITIES = [
           : ['error']) as LoggerOptions,
       }),
     }),
+
+    IdentityModule,
   ],
+
+  /** Shared singleton services — injected anywhere without re-importing. */
+  providers: [TemplateRenderer, MailService],
+  exports: [MailService],
 })
 export class AppModule {}
