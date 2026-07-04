@@ -4,9 +4,6 @@
   "sourceRoot": "src",
   "entryFile": "host/main",
   "compilerOptions": {
-    "deleteOutDir": true,
-    "assets": [
-      { "include": "shared/Templates/**/*.hbs", "watchAssets": true }
-    ]
+    "deleteOutDir": true
   }
 }

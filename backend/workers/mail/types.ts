@@ -7,9 +7,7 @@ export interface EmailJobPayload {
   };
   content: {
     view: string;
-    /** Inline Handlebars body fragment shipped by the mailer. */
     template?: string;
   };
-  /** Typed template variables, serialised from BaseMailer.getData(). */
   data: Record<string, unknown>;
 }
