@@ -8,12 +8,6 @@ import type { EmailJobPayload } from '../../../../workers/mail/types';
 import { VerificationMailer } from '../mailers/Verification.Mailer';
 import { PasswordResetMailer } from '../mailers/PasswordReset.Mailer';
 
-/**
- * Single entry point for all identity-related email sends.
- * Enqueues a BullMQ job instead of calling MailService directly, so email
- * delivery is handled asynchronously by the email worker process.
- * HTTP requests return immediately — SMTP latency is off the request thread.
- */
 @Injectable()
 export class MailFactory implements OnApplicationShutdown {
   private readonly logger = new Logger(MailFactory.name);
