@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { Worker, type Job } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis } from 'ioredis';
 
 import { MailWorkerModule } from './mail.module';
 import { RendererService } from './services/renderer.service';
@@ -16,7 +16,7 @@ async function bootstrap(): Promise<void> {
   const renderer = app.get(RendererService);
   const sender = app.get(SenderService);
 
-  const connection = new IORedis(
+  const connection = new Redis(
     process.env.REDIS_URL ?? 'redis://localhost:6379',
     { maxRetriesPerRequest: null, enableReadyCheck: false },
   );
@@ -26,9 +26,8 @@ async function bootstrap(): Promise<void> {
   const worker = new Worker<EmailJobPayload>(
     'email',
     async (job: Job<EmailJobPayload>) => {
-      const { envelope, content, data } = job.data;
-      const html = renderer.render(content.view, data, content.template);
-      await sender.send(envelope, html);
+      const html = renderer.render(job.data.view, job.data.data);
+      await sender.send(job.data, html);
     },
     {
       connection,
@@ -39,7 +38,7 @@ async function bootstrap(): Promise<void> {
   );
 
   worker.on('completed', (job) =>
-    console.log(`[mail-worker] ✓ ${job.id} → ${job.data.envelope.toEmail}`),
+    console.log(`[mail-worker] ✓ ${job.id} → ${job.data.to.email}`),
   );
 
   worker.on('failed', (job, err) =>

@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 
 @Entity({ name: 'sessions' })
+@Index(['userId', 'sit'], { unique: true })
 export class Session {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -21,9 +22,16 @@ export class Session {
   @JoinColumn({ name: 'user_id' })
   user: any;
 
-  /** Argon2id hash of the randomly generated session secret. */
-  @Column({ type: 'text', name: 'secret_hash' })
-  secretHash: string;
+  /**
+   * session-issued-at: the unix-seconds timestamp embedded as `sit` in both JWTs.
+   * Used as the stable session identifier across refreshes.
+   */
+  @Column({ type: 'integer', name: 'sit' })
+  sit: number;
+
+  /** Argon2id / SHA-256 hash of a session secret — unused for JWT sessions, kept nullable. */
+  @Column({ type: 'text', name: 'secret_hash', nullable: true })
+  secretHash: string | null;
 
   @Column({ type: 'timestamptz', name: 'expires_at' })
   expiresAt: Date;

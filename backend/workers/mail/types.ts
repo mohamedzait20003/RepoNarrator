@@ -1,13 +1,7 @@
-/** Serialised payload enqueued by MailFactory and consumed by the mail worker. */
+/** Serialised payload enqueued by any MailFactory and consumed by the mail worker. */
 export interface EmailJobPayload {
-  envelope: {
-    toEmail: string;
-    toName: string;
-    subject: string;
-  };
-  content: {
-    view: string;
-    template?: string;
-  };
+  to: { email: string; name: string };
+  subject: string;
+  view: string;
   data: Record<string, unknown>;
 }

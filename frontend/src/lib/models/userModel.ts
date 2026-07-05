@@ -1,3 +1,5 @@
+import type { BaseRequest, ApiResponse } from "./baseModel";
+
 export type Role = "user" | "support" | "super_admin";
 
 export interface PlanFeatures {
@@ -13,11 +15,12 @@ export interface PlanFeatures {
 }
 
 export interface Plan {
-  id: string;
   tier: "free" | "starter" | "pro";
   priceMonthly: number;
+
   /** -1 = unlimited */
   repoLimit: number;
+
   /** -1 = unlimited */
   generationLimit: number;
   modelTier: "economy" | "standard" | "premium";
@@ -32,15 +35,56 @@ export interface Subscription {
 }
 
 export interface UserProfile {
-  id: string;
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
   githubLogin: string | null;
-  role: Role;
   subscription: Subscription | null;
 }
 
-// Requests
+// ─── Requests ────────────────────────────────────────────────────────────────
 
-// Responses
+export interface SignUpRequest extends BaseRequest {
+  email: string;
+  password: string;
+  name?: string;
+}
+
+export interface SignInRequest extends BaseRequest {
+  email: string;
+  password: string;
+}
+
+export interface ForgotPasswordRequest extends BaseRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest extends BaseRequest {
+  token: string;
+  password: string;
+}
+
+export interface EmailVerifyRequest extends BaseRequest {
+  token: string;
+}
+
+// ─── Responses ───────────────────────────────────────────────────────────────
+
+export interface AuthProfile {
+  Email: string | null;
+  Name: string | null;
+  AvatarUrl: string | null;
+}
+
+export interface AuthResponseData {
+  AccessToken: string;
+  Role: Role;
+  Profile: AuthProfile;
+}
+
+export interface RefreshResponseData {
+  AccessToken: string;
+}
+
+export type AuthResponse = ApiResponse<AuthResponseData>;
+export type RefreshResponse = ApiResponse<RefreshResponseData>;

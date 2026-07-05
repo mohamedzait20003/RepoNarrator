@@ -7,7 +7,8 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 /**
  * Payload embedded in the access JWT.
  * `dig` = HMAC-SHA256(sub:role:sit, digestSecret).
- * `sit` = session-issued-at (unix seconds) — shared with the refresh token.
+ * `sit` = session-issued-at (unix seconds) — shared with the refresh token
+ *          and used as the stable session identifier in the `sessions` table.
  */
 export interface AccessTokenPayload {
   sub: string;
@@ -34,11 +35,11 @@ export interface RefreshTokenPayload {
   exp?: number;
 }
 
-// ── Public result types ───────────────────────────────────────────────────────
-
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
+  /** The `sit` embedded in both tokens — use this to create / look up the session row. */
+  sit: number;
 }
 
 /** Profile snippet returned to the client on sign-in / GitHub sign. */
@@ -90,9 +91,12 @@ export class TokenService {
   /**
    * Issues a fresh access + refresh token pair for a user.
    * Both tokens share the same `sit` (session-issued-at) and `dig` (digest).
+   *
+   * Pass an existing `sit` on refresh so the session row stays the same.
+   * Omit it (or pass undefined) on initial sign-in to start a new session.
    */
-  generatePair(userId: string, role: string): TokenPair {
-    const sit = Math.floor(Date.now() / 1000);
+  generatePair(userId: string, role: string, existingSit?: number): TokenPair {
+    const sit = existingSit ?? Math.floor(Date.now() / 1000);
     const dig = this.deriveDigest(userId, role, sit);
 
     const sharedClaims = { sub: userId, role, dig, sit };
@@ -119,7 +123,7 @@ export class TokenService {
       },
     );
 
-    return { accessToken, refreshToken };
+    return { accessToken, refreshToken, sit };
   }
 
   /**
@@ -164,7 +168,7 @@ export class TokenService {
   verifyRefreshPair(
     expiredAccessToken: string,
     refreshToken: string,
-  ): { userId: string; role: string } {
+  ): { userId: string; role: string; sit: number } {
     // Step 1 — decode (do NOT verify expiry) the access token.
     let accessPayload: AccessTokenPayload | null;
     try {
@@ -210,6 +214,32 @@ export class TokenService {
       );
     }
 
-    return { userId: refreshPayload.sub, role: refreshPayload.role };
+    return {
+      userId: refreshPayload.sub,
+      role: refreshPayload.role,
+      sit: refreshPayload.sit,
+    };
+  }
+
+  /**
+   * Verifies the refresh token signature (ignoring expiry) and returns its claims.
+   * Used during logout to identify which session to revoke.
+   */
+  decodeRefresh(token: string): { userId: string; sit: number } {
+    let payload: RefreshTokenPayload;
+    try {
+      payload = this.jwt.verify<RefreshTokenPayload>(token, {
+        secret: this.refreshSecret,
+        ignoreExpiration: true,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token.');
+    }
+
+    if (payload.type !== 'refresh') {
+      throw new UnauthorizedException('Wrong token type.');
+    }
+
+    return { userId: payload.sub, sit: payload.sit };
   }
 }

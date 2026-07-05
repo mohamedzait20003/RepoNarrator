@@ -32,23 +32,20 @@ export class SenderService {
         : null;
   }
 
-  async send(
-    envelope: EmailJobPayload['envelope'],
-    html: string,
-  ): Promise<void> {
+  async send(payload: EmailJobPayload, html: string): Promise<void> {
     if (this.driver === 'log') {
-      this.logger.log(`[log] → ${envelope.toEmail} | "${envelope.subject}"`);
+      this.logger.log(`[log] → ${payload.to.email} | "${payload.subject}"`);
       this.logger.verbose(`[log] HTML:\n${html}`);
       return;
     }
 
     await this.transporter!.sendMail({
       from: `"${this.fromName}" <${this.fromEmail}>`,
-      to: `"${envelope.toName}" <${envelope.toEmail}>`,
-      subject: envelope.subject,
+      to: `"${payload.to.name}" <${payload.to.email}>`,
+      subject: payload.subject,
       html,
     });
 
-    this.logger.log(`Sent "${envelope.subject}" → ${envelope.toEmail}`);
+    this.logger.log(`Sent "${payload.subject}" → ${payload.to.email}`);
   }
 }

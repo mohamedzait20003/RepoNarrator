@@ -35,12 +35,8 @@ export class RendererService implements OnModuleInit {
     this.logger.log('BaseMail.hbs loaded.');
   }
 
-  render(
-    viewName: string,
-    data: Record<string, unknown>,
-    inlineTemplate?: string,
-  ): string {
-    const body = this.compileBody(viewName, inlineTemplate)(data);
+  render(viewName: string, data: Record<string, unknown>): string {
+    const body = this.compileBody(viewName)(data);
 
     return this.baseTemplate({
       ...data,
@@ -50,29 +46,29 @@ export class RendererService implements OnModuleInit {
     });
   }
 
-  private compileBody(
-    viewName: string,
-    inlineTemplate?: string,
-  ): HandlebarsTemplateDelegate {
+  private compileBody(viewName: string): HandlebarsTemplateDelegate {
     const cached = this.bodyCache.get(viewName);
     if (cached) return cached;
 
-    const source = this.resolveBody(viewName, inlineTemplate);
+    const source = this.resolveBody(viewName);
     const compiled = Handlebars.compile(source);
     this.bodyCache.set(viewName, compiled);
     return compiled;
   }
 
-  private resolveBody(viewName: string, inlineTemplate?: string): string {
+  private resolveBody(viewName: string): string {
+    // 1. External override path (deployment-time customisation)
     if (this.overridePath) {
       const fsPath = join(this.overridePath, `${viewName}.hbs`);
       if (existsSync(fsPath)) return readFileSync(fsPath, 'utf-8');
     }
 
-    if (inlineTemplate) return inlineTemplate;
+    // 2. Bundled worker templates
+    const bundled = join(__dirname, '../templates', `${viewName}.hbs`);
+    if (existsSync(bundled)) return readFileSync(bundled, 'utf-8');
 
     throw new InternalServerErrorException(
-      `Email body template '${viewName}' not found.`,
+      `Email template '${viewName}' not found.`,
     );
   }
 }

@@ -13,6 +13,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from '../entities/user.entity';
 import { Token } from '../entities/token.entity';
 import { UserProfile } from '../entities/profile.entity';
+import { Session } from '../entities/session.entity';
 import { UserRole } from '../../../shared/Domain/enums/user-role.enum';
 import { TokenType } from '../../../shared/Domain/enums/token-type.enum';
 
@@ -23,6 +24,7 @@ import { ResetPasswordDto } from '../dto/reset-password.dto';
 import { MailFactory } from '../factories/Mail.Factory';
 
 const BCRYPT_ROUNDS = 12;
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1_000;
 
 // Raw user data received from GitHub's API
 export interface GithubUserData {
@@ -48,6 +50,7 @@ export class AuthService {
     @InjectRepository(UserProfile)
     private readonly profiles: Repository<UserProfile>,
     @InjectRepository(Token) private readonly tokens: Repository<Token>,
+    @InjectRepository(Session) private readonly sessions: Repository<Session>,
     private readonly tokenService: TokenService,
     private readonly config: ConfigService,
     private readonly mailFactory: MailFactory,
@@ -201,21 +204,81 @@ export class AuthService {
   // ── Token refresh ─────────────────────────────────────────────────────────
 
   /**
-   * Validates the access + refresh token pair (no DB hit) and issues a new pair.
-   * See TokenService.verifyRefreshPair for the digest cross-validation algorithm.
+   * Validates the access + refresh token pair, checks the session is not revoked,
+   * then issues a new pair reusing the same `sit` so the session row persists.
    */
-  refresh(expiredAccessToken: string, refreshToken: string): TokenPair {
-    const { userId, role } = this.tokenService.verifyRefreshPair(
+  async refresh(
+    expiredAccessToken: string,
+    refreshToken: string,
+  ): Promise<TokenPair> {
+    const { userId, role, sit } = this.tokenService.verifyRefreshPair(
       expiredAccessToken,
       refreshToken,
     );
-    return this.tokenService.generatePair(userId, role);
+
+    const session = await this.sessions.findOne({ where: { userId, sit } });
+
+    if (!session || session.revokedAt) {
+      throw new UnauthorizedException('Session has been revoked.');
+    }
+
+    const newPair = this.tokenService.generatePair(userId, role, sit);
+
+    await this.sessions.update(session.id, {
+      lastActiveAt: new Date(),
+      expiresAt: new Date(Date.now() + SESSION_TTL_MS),
+    });
+
+    return newPair;
+  }
+
+  // ── Logout ────────────────────────────────────────────────────────────────
+
+  /**
+   * Revokes the session identified by the refresh token's `sit` claim.
+   * If the token is missing or malformed we silently skip the DB step —
+   * the cookie is cleared by the controller regardless.
+   */
+  async logout(refreshToken: string | undefined): Promise<void> {
+    if (!refreshToken) return;
+
+    let userId: string;
+    let sit: number;
+
+    try {
+      ({ userId, sit } = this.tokenService.decodeRefresh(refreshToken));
+    } catch {
+      return; // tampered token — nothing to revoke
+    }
+
+    await this.sessions
+      .createQueryBuilder()
+      .update()
+      .set({ revokedAt: new Date() })
+      .where('user_id = :userId AND sit = :sit AND revoked_at IS NULL', {
+        userId,
+        sit,
+      })
+      .execute();
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
 
-  private buildAuthResult(user: User): AuthResult {
+  private async buildAuthResult(user: User): Promise<AuthResult> {
     const tokens = this.tokenService.generatePair(user.id, user.role);
+
+    await this.sessions.save(
+      this.sessions.create({
+        userId: user.id,
+        sit: tokens.sit,
+        secretHash: null,
+        expiresAt: new Date(Date.now() + SESSION_TTL_MS),
+        ipAddress: null,
+        userAgent: null,
+        revokedAt: null,
+      }),
+    );
+
     return {
       tokens,
       responseData: {

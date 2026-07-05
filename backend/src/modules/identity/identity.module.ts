@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { User } from './entities/user.entity';
 import { UserProfile } from './entities/profile.entity';
 import { Token } from './entities/token.entity';
+import { Session } from './entities/session.entity';
 
 import { TokenService } from './services/token.service';
 import { AuthService } from './services/auth.service';
@@ -17,10 +18,11 @@ import { ForgotPasswordController } from './controllers/forgot-password.controll
 import { ResetPasswordController } from './controllers/reset-password.controller';
 import { RefreshController } from './controllers/refresh.controller';
 import { EmailVerifyController } from './controllers/email-verify.controller';
+import { LogoutController } from './controllers/logout.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, UserProfile, Token]),
+    TypeOrmModule.forFeature([User, UserProfile, Token, Session]),
 
     // JwtModule with no defaults — TokenService supplies secrets per-call via ConfigService.
     JwtModule.register({}),
@@ -33,6 +35,7 @@ import { EmailVerifyController } from './controllers/email-verify.controller';
     ResetPasswordController,
     RefreshController,
     EmailVerifyController,
+    LogoutController,
   ],
   providers: [TokenService, AuthService, MailFactory],
   exports: [TokenService],

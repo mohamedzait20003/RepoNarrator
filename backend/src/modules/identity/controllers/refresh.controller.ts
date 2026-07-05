@@ -25,16 +25,12 @@ export class RefreshController extends BaseController {
     this.refreshCookieName = this.config.get<string>('auth.refreshCookieName')!;
   }
 
-  /**
-   * Issues a new access token (and rotates the refresh token cookie) by
-   * cross-validating the expired access token and the refresh token cookie.
-   *
-   * No database lookup is performed — validation is pure cryptography.
-   * See TokenService.verifyRefreshPair for the digest algorithm.
-   */
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const refreshToken = (req.cookies as Record<string, string>)[
       this.refreshCookieName
     ];
@@ -49,7 +45,10 @@ export class RefreshController extends BaseController {
       );
     }
 
-    const newPair = this.authService.refresh(expiredAccessToken, refreshToken);
+    const newPair = await this.authService.refresh(
+      expiredAccessToken,
+      refreshToken,
+    );
 
     // Rotate the refresh token cookie
     res.cookie(this.refreshCookieName, newPair.refreshToken, {
