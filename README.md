@@ -31,9 +31,12 @@ reponarrator/
             ├── Configuration/ # Env/config loading
             ├── Common/        # Filters, interceptors, guards, pipes
             ├── Contracts/     # Repository interfaces (dependency inversion)
-            ├── Mail/          # Mail service
+            ├── Factories/     # Base factories (e.g. queue-backed mail factory)
             └── Services/      # Cross-cutting services (encryption, storage, ...)
 ```
+
+Email templates and rendering live entirely inside `backend/workers/mail/` — the
+worker runs as an independent process and shares nothing with `src/`.
 
 ## Subscription tiers
 
@@ -49,20 +52,21 @@ Limits live in the `plans` table and are tunable without a redeploy.
 
 ## Getting started
 
-Each app is set up and run independently.
+Each app is set up and run independently, and each has its own `.env.example`.
 
 ```bash
-cp .env.example .env        # fill in DATABASE_URL, GitHub OAuth, Stripe, LLM keys, etc.
-
 # Backend (NestJS on :4000)
 cd backend
+cp .env.example .env        # fill in DATABASE_URL, GitHub OAuth, Stripe, LLM keys, etc.
 npm install
 npm run migration:run
 npm run seed
 npm run start:dev
+npm run worker:mail         # mail worker, in its own terminal
 
 # Frontend (TanStack Start on :3000), in a separate terminal
 cd frontend
+cp .env.example .env        # set VITE_BASE_URL to the backend API
 npm install
 npm run dev
 ```

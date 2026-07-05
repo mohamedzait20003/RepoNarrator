@@ -68,6 +68,11 @@ export interface EmailVerifyRequest extends BaseRequest {
   token: string;
 }
 
+/** Query params carried on GET /auth/github/callback (GitHub redirects here). */
+export interface GithubCallbackRequest extends BaseRequest {
+  code: string;
+}
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface AuthProfile {
@@ -76,12 +81,14 @@ export interface AuthProfile {
   AvatarUrl: string | null;
 }
 
+/** Returned by both /auth/sign-in and /auth/github/callback. */
 export interface AuthResponseData {
   AccessToken: string;
   Role: Role;
   Profile: AuthProfile;
 }
 
+/** Returned by /auth/refresh. */
 export interface RefreshResponseData {
   AccessToken: string;
 }

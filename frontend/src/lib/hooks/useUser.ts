@@ -8,6 +8,8 @@ import {
   forgotPassword,
   resetPassword,
   verifyEmail,
+  githubAuthUrl,
+  githubCallback,
 } from "@/lib/handlers/userHandlers";
 import type {
   SignUpRequest,
@@ -15,9 +17,28 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   EmailVerifyRequest,
+  GithubCallbackRequest,
+  AuthResponseData,
 } from "@/lib/models/userModel";
 
 const USER_QUERY_KEY = ["user"] as const;
+
+
+function useApplyAuth() {
+  const queryClient = useQueryClient();
+  const storeLogin = useStore((s) => s.login);
+
+  return (payload: AuthResponseData) => {
+    storeLogin(payload.Role, payload.AccessToken, {
+      email: payload.Profile.Email,
+      name: payload.Profile.Name,
+      avatarUrl: payload.Profile.AvatarUrl,
+      githubLogin: null,
+      subscription: null,
+    });
+    queryClient.setQueryData(USER_QUERY_KEY, payload);
+  };
+}
 
 export function useSignUp() {
   return useMutation({
@@ -26,24 +47,32 @@ export function useSignUp() {
 }
 
 export function useSignIn() {
-  const queryClient = useQueryClient();
-  const storeLogin = useStore((s) => s.login);
+  const applyAuth = useApplyAuth();
 
   return useMutation({
     mutationFn: (data: SignInRequest) => signIn(data),
     onSuccess: (res) => {
-      const payload = res.Data;
-      if (!payload) return;
+      if (res.Data) applyAuth(res.Data);
+    },
+  });
+}
 
-      storeLogin(payload.Role, payload.AccessToken, {
-        email: payload.Profile.Email,
-        name: payload.Profile.Name,
-        avatarUrl: payload.Profile.AvatarUrl,
-        githubLogin: null,
-        subscription: null,
-      });
+export function useGithubAuth() {
+  return {
+    initiate: () => {
+      window.location.href = githubAuthUrl();
+    },
+  };
+}
 
-      queryClient.setQueryData(USER_QUERY_KEY, payload);
+export function useGithubCallback() {
+  const applyAuth = useApplyAuth();
+
+  return useMutation({
+    mutationFn: (data: GithubCallbackRequest) => githubCallback(data),
+    onSuccess: (res) => {
+      if (res.Data)
+        applyAuth(res.Data);
     },
   });
 }

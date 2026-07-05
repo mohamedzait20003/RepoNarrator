@@ -10,10 +10,12 @@ build/
 .tanstack/
 .nitro/
 
-# env
+# env — ignored at any depth (root, backend/, frontend/); examples stay tracked
 .env
 .env.local
 .env.*.local
+!.env.example
+!**/.env.example
 
 # logs
 *.log

@@ -4,6 +4,7 @@ import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
 
 import { CreateGenSlice, type GenSlice } from "./slices/genSlice";
 import { CreateUserSlice, type UserSlice } from "./slices/userSlice";
+import { scheduleTokenRefresh } from "@/lib/auth/silentRefresh";
 
 type StoreState = UserSlice & GenSlice;
 
@@ -30,3 +31,11 @@ export const useStore = create<StoreState>()(
     { name: "ReponarratorStore" }
   )
 );
+
+if (typeof window !== "undefined") {
+  useStore.subscribe(
+    (state) => state.accessToken,
+    (accessToken) => scheduleTokenRefresh(accessToken),
+    { fireImmediately: true }
+  );
+}

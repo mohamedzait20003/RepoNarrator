@@ -1,7 +1,7 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
 import { useStore } from "@/store";
-import type { ApiResponse } from "@/lib/models/baseModel";
+import type { RefreshResponse } from "@/lib/models/userModel";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:8080/api";
 
@@ -29,7 +29,7 @@ let refreshPromise: Promise<string> | null = null;
 
 export function refreshAccessToken(): Promise<string> {
   if (!refreshPromise) {
-    refreshPromise = baseApi.post<ApiResponse<{ AccessToken: string }>>("/auth/refresh").then((res) => {
+    refreshPromise = baseApi.post<RefreshResponse>("/auth/refresh").then((res) => {
       const token = res.data?.Data?.AccessToken;
       if (!token) throw new Error("Malformed refresh response.");
       useStore.getState().setAccessToken(token);
@@ -45,7 +45,7 @@ export function refreshAccessToken(): Promise<string> {
 
 type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
-const isAuthEndpoint = (url?: string) => !!url && (url.includes("/auth/refresh") || url.includes("/auth/login"));
+const isAuthEndpoint = (url?: string) => !!url && (url.includes("/auth/refresh") || url.includes("/auth/sign-in"));
 
 baseApi.interceptors.response.use((response) => response, async (error) => {
   const status = error?.response?.status;

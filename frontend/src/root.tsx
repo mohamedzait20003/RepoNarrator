@@ -9,7 +9,6 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { HeadContent, Scripts, Outlet, useRouterState, createRootRouteWithContext } from "@tanstack/react-router";
 
 import { useStore } from "@/store";
-import { useRefresh } from "@/lib/hooks/useUser";
 import { Navbar, Footer, ContentSkeleton } from "@/common/components/main";
 
 const THEME_INIT = `(function(){try{var s=localStorage.getItem("reponarrator-store");if(s&&JSON.parse(s).state.mode==="dark"){document.documentElement.classList.add("dark");}}catch(e){}})();`;
@@ -30,8 +29,6 @@ const RootDocument = ({ children }: Readonly<{ children: ReactNode }>) => {
 };
 
 const RootComponent = () => {
-    useRefresh();
-
     const mode = useStore((s) => s.mode);
     useEffect(() => {
         document.documentElement.classList.toggle("dark", mode === "dark");
