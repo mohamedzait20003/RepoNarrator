@@ -1,23 +1,31 @@
+import { randomBytes } from 'crypto';
 import {
+  Body,
   Controller,
   Get,
-  Query,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 import { BaseController } from './base.controller';
 import { AuthService, GithubUserData } from '../services/auth.service';
+import { GithubExchangeDto } from '../dto/github-exchange.dto';
+import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
+@AuthThrottle()
 export class GithubController extends BaseController {
   private readonly clientId: string;
   private readonly clientSecret: string;
   private readonly callbackUrl: string;
   private readonly refreshCookieName: string;
-  private readonly frontendUrl: string;
+  private readonly stateCookieName = 'gh_oauth_state';
 
   constructor(
     private readonly authService: AuthService,
@@ -28,19 +36,31 @@ export class GithubController extends BaseController {
     this.clientSecret = this.config.get<string>('auth.github.clientSecret')!;
     this.callbackUrl = this.config.get<string>('auth.github.callbackUrl')!;
     this.refreshCookieName = this.config.get<string>('auth.refreshCookieName')!;
-    this.frontendUrl = this.config.get<string>('app.frontendUrl')!;
   }
 
   /**
-   * Redirects the browser to GitHub's OAuth authorization page.
+   * Starts the OAuth flow: sets a short-lived HttpOnly `state` cookie (CSRF) and
+   * redirects the browser to GitHub. `redirect_uri` points at the FRONTEND
+   * callback, which forwards the code back to POST /auth/github.
    * Uses res.redirect directly so the global ResponseInterceptor doesn't wrap it.
    */
   @Get('github')
   initiateOAuth(@Res() res: Response) {
+    const state = randomBytes(16).toString('hex');
+
+    res.cookie(this.stateCookieName, state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 10 * 60 * 1_000, // 10 minutes
+      path: '/api/v1/auth',
+    });
+
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.callbackUrl,
       scope: 'read:user user:email',
+      state,
     });
     res.redirect(
       `https://github.com/login/oauth/authorize?${params.toString()}`,
@@ -48,30 +68,32 @@ export class GithubController extends BaseController {
   }
 
   /**
-   * GitHub redirects the browser here with ?code after the user authorises.
-   * We exchange the code, upsert the user, set the HttpOnly refresh cookie, then
-   * redirect the browser to the frontend callback route with a short-lived
-   * access token (or an error code on failure).
+   * Completes the flow. The frontend callback forwards { code, state } here.
+   * We verify `state` against the cookie, exchange the code for GitHub user
+   * data, upsert the user, and return the SAME AuthResponse as email sign-in
+   * (access token + role + profile) plus the HttpOnly refresh cookie.
    */
-  @Get('github/callback')
-  async callback(
-    @Query('code') code: string | undefined,
-    @Res() res: Response,
+  @Post('github')
+  @HttpCode(HttpStatus.OK)
+  async exchange(
+    @Body() dto: GithubExchangeDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    const target = (query: string) =>
-      res.redirect(`${this.frontendUrl}/auth/github/callback${query}`);
-
-    if (!code) return target('?error=access_denied');
-
-    try {
-      const githubUser = await this.exchangeCode(code);
-      const { tokens } = await this.authService.githubAuth(githubUser);
-
-      this.setRefreshCookie(res, tokens.refreshToken);
-      return target(`?token=${encodeURIComponent(tokens.accessToken)}`);
-    } catch {
-      return target('?error=github_failed');
+    const cookieState = (req.cookies as Record<string, string | undefined>)[
+      this.stateCookieName
+    ];
+    if (!cookieState || cookieState !== dto.state) {
+      throw new UnauthorizedException('Invalid or expired OAuth state.');
     }
+    res.clearCookie(this.stateCookieName, { path: '/api/v1/auth' });
+
+    const githubUser = await this.exchangeCode(dto.code);
+    const { tokens, responseData } =
+      await this.authService.githubAuth(githubUser);
+
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return this.ok(responseData, 'GitHub sign-in successful.');
   }
 
   // ── Private ───────────────────────────────────────────────────────────────
@@ -91,6 +113,7 @@ export class GithubController extends BaseController {
           client_id: this.clientId,
           client_secret: this.clientSecret,
           code,
+          redirect_uri: this.callbackUrl,
         }),
       },
     );

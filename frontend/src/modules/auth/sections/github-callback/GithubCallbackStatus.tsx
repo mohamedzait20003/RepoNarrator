@@ -6,11 +6,12 @@ import { Button } from "@/common/components/ui/button";
 import { useGithubCallback } from "@/lib/hooks/useUser";
 
 export function GithubCallbackStatus() {
-  const { token, error } = useSearch({ strict: false }) as {
-    token?: string;
+  const { code, state, error } = useSearch({ strict: false }) as {
+    code?: string;
+    state?: string;
     error?: string;
   };
-  const completeSignIn = useGithubCallback();
+  const github = useGithubCallback();
   const navigate = useNavigate();
   const fired = useRef(false);
   const [failed, setFailed] = useState(false);
@@ -19,21 +20,22 @@ export function GithubCallbackStatus() {
     if (fired.current) return;
     fired.current = true;
 
-    if (error || !token) {
+    if (error || !code || !state) {
       setFailed(true);
       return;
     }
 
-    try {
-      completeSignIn(token);
-      // Replace history so the token-bearing URL isn't left in the back stack.
-      void navigate({ to: "/", replace: true });
-    } catch {
-      setFailed(true);
-    }
-  }, [token, error, completeSignIn, navigate]);
+    github.mutate(
+      { code, state },
+      {
+        onSuccess: () => void navigate({ to: "/", replace: true }),
+        onError: () => setFailed(true),
+      },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  if (failed) {
+  if (failed || github.isError) {
     return (
       <div className="flex flex-col items-center py-4 text-center">
         <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
@@ -43,7 +45,8 @@ export function GithubCallbackStatus() {
         <p className="mt-2 text-sm text-muted-foreground">
           {error === "access_denied"
             ? "GitHub access was denied. You can try again whenever you're ready."
-            : "We couldn't complete GitHub sign-in. Please try again."}
+            : (github.error?.message ??
+              "We couldn't complete GitHub sign-in. Please try again.")}
         </p>
         <Button
           asChild

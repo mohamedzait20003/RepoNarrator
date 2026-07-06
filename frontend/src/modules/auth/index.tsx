@@ -61,8 +61,9 @@ const githubCallbackRoute = createRoute({
   path: "/auth/github/callback",
   validateSearch: (
     search: Record<string, unknown>,
-  ): { token?: string; error?: string } => ({
-    token: typeof search.token === "string" ? search.token : undefined,
+  ): { code?: string; state?: string; error?: string } => ({
+    code: typeof search.code === "string" ? search.code : undefined,
+    state: typeof search.state === "string" ? search.state : undefined,
     error: typeof search.error === "string" ? search.error : undefined,
   }),
   component: GithubCallback,

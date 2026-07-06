@@ -6,6 +6,7 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   EmailVerifyRequest,
+  GithubExchangeRequest,
   AuthResponse,
 } from "../models/userModel";
 
@@ -41,4 +42,9 @@ export async function verifyEmail(data: EmailVerifyRequest): Promise<BaseRespons
 
 export function githubAuthUrl(): string {
   return `${baseApi.defaults.baseURL ?? ""}/auth/github`;
+}
+
+export async function githubExchange(data: GithubExchangeRequest): Promise<AuthResponse> {
+  const res = await baseApi.post<AuthResponse>("/auth/github", data);
+  return res.data;
 }

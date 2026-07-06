@@ -11,14 +11,16 @@ import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 
 import { BaseController } from './base.controller';
-import { AuthService } from '../services/auth.service';
+import { SessionService } from '../services/session.service';
+import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
+@AuthThrottle()
 export class RefreshController extends BaseController {
   private readonly refreshCookieName: string;
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly sessionService: SessionService,
     private readonly config: ConfigService,
   ) {
     super();
@@ -45,7 +47,7 @@ export class RefreshController extends BaseController {
       );
     }
 
-    const newPair = await this.authService.refresh(
+    const newPair = await this.sessionService.refresh(
       expiredAccessToken,
       refreshToken,
     );

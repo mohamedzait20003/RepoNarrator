@@ -1,4 +1,3 @@
-import { createHash } from 'crypto';
 import {
   BadRequestException,
   ConflictException,
@@ -11,22 +10,16 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
 import { User } from '../entities/user.entity';
-import { Token } from '../entities/token.entity';
 import { UserProfile } from '../entities/profile.entity';
-import { Session } from '../entities/session.entity';
 import { UserRole } from '../../../shared/Domain/enums/user-role.enum';
-import { TokenType } from '../../../shared/Domain/enums/token-type.enum';
 
-import { TokenService, AuthResponseData, TokenPair } from './token.service';
+import { AuthResult } from './token.service';
+import { SessionService } from './session.service';
+import { VerificationService } from './verification.service';
 import { SignUpDto } from '../dto/sign-up.dto';
 import { SignInDto } from '../dto/sign-in.dto';
-import { ResetPasswordDto } from '../dto/reset-password.dto';
-import { MailFactory } from '../factories/Mail.Factory';
 
 const BCRYPT_ROUNDS = 12;
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1_000;
-
-// Raw user data received from GitHub's API
 export interface GithubUserData {
   id: number;
   login: string;
@@ -34,11 +27,6 @@ export interface GithubUserData {
   email: string | null;
   avatar_url: string;
   accessToken: string;
-}
-
-export interface AuthResult {
-  tokens: TokenPair;
-  responseData: AuthResponseData;
 }
 
 @Injectable()
@@ -49,17 +37,15 @@ export class AuthService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(UserProfile)
     private readonly profiles: Repository<UserProfile>,
-    @InjectRepository(Token) private readonly tokens: Repository<Token>,
-    @InjectRepository(Session) private readonly sessions: Repository<Session>,
-    private readonly tokenService: TokenService,
+    private readonly sessionService: SessionService,
+    private readonly verificationService: VerificationService,
     private readonly config: ConfigService,
-    private readonly mailFactory: MailFactory,
   ) {
     this.adminEmailDomain = this.config.get<string>('auth.adminEmailDomain')!;
   }
 
   /**
-   * Upserts a user from GitHub OAuth data.
+   * Upserts a user from GitHub OAuth data, then starts a session.
    * Always sets emailVerifiedAt (GitHub has already verified the email) and
    * creates the UserProfile on first login.
    */
@@ -94,12 +80,12 @@ export class AuthService {
       user = (await this.users.findOne({ where: { id: user.id } }))!;
     }
 
-    return this.buildAuthResult(user);
+    return this.sessionService.createSession(user);
   }
 
   /**
    * Creates an unverified account. Does NOT sign the user in — they must verify
-   * their email first. Sends a verification token via MailService (Commit 6).
+   * their email first. Delegates the verification email to VerificationService.
    */
   async signUp(dto: SignUpDto): Promise<void> {
     const existing = await this.users.findOne({ where: { email: dto.email } });
@@ -125,14 +111,8 @@ export class AuthService {
 
     await this.profiles.save(this.profiles.create({ id: user.id }));
 
-    const rawToken = await this.issueToken(user.id, TokenType.VERIFICATION);
-
-    const frontendUrl = this.config.get<string>('app.frontendUrl')!;
-    const url = `${frontendUrl}/auth/verify-email?token=${rawToken}`;
-    await this.mailFactory.sendVerification(user.email!, user.name, url);
+    await this.verificationService.sendAccountVerification(user);
   }
-
-  // ── Email sign-in ─────────────────────────────────────────────────────────
 
   async signIn(dto: SignInDto): Promise<AuthResult> {
     const user = await this.users.findOne({ where: { email: dto.email } });
@@ -148,190 +128,6 @@ export class AuthService {
     const passwordMatch = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordMatch) throw new UnauthorizedException('Invalid credentials.');
 
-    return this.buildAuthResult(user);
-  }
-
-  // ── Forgot password ───────────────────────────────────────────────────────
-
-  /**
-   * Issues a password-reset token. Always responds with 200 regardless of
-   * whether the email exists (prevents user enumeration).
-   */
-  async forgotPassword(email: string): Promise<void> {
-    const user = await this.users.findOne({ where: { email } });
-    if (!user) return; // silent no-op
-
-    const rawToken = await this.issueToken(user.id, TokenType.PASS_RESET);
-
-    const frontendUrl = this.config.get<string>('app.frontendUrl')!;
-    const url = `${frontendUrl}/auth/reset-password?token=${rawToken}`;
-    await this.mailFactory.sendPasswordReset(user.email!, user.name, url);
-  }
-
-  // ── Reset password ────────────────────────────────────────────────────────
-
-  async resetPassword(dto: ResetPasswordDto): Promise<void> {
-    const tokenHash = this.hashRawToken(dto.token);
-
-    const record = await this.tokens.findOne({
-      where: { tokenHash, type: TokenType.PASS_RESET },
-    });
-
-    this.assertTokenValid(record);
-
-    await this.users.update(record!.userId, {
-      passwordHash: await bcrypt.hash(dto.password, BCRYPT_ROUNDS),
-    });
-
-    await this.tokens.update(record!.id, { usedAt: new Date() });
-  }
-
-  // ── Email verification ────────────────────────────────────────────────────
-
-  async verifyEmail(rawToken: string): Promise<void> {
-    const tokenHash = this.hashRawToken(rawToken);
-
-    const record = await this.tokens.findOne({
-      where: { tokenHash, type: TokenType.VERIFICATION },
-    });
-
-    this.assertTokenValid(record);
-
-    await this.users.update(record!.userId, { emailVerifiedAt: new Date() });
-    await this.tokens.update(record!.id, { usedAt: new Date() });
-  }
-
-  // ── Token refresh ─────────────────────────────────────────────────────────
-
-  /**
-   * Validates the access + refresh token pair, checks the session is not revoked,
-   * then issues a new pair reusing the same `sit` so the session row persists.
-   */
-  async refresh(
-    expiredAccessToken: string,
-    refreshToken: string,
-  ): Promise<TokenPair> {
-    const { userId, role, sit } = this.tokenService.verifyRefreshPair(
-      expiredAccessToken,
-      refreshToken,
-    );
-
-    const session = await this.sessions.findOne({ where: { userId, sit } });
-
-    if (!session || session.revokedAt) {
-      throw new UnauthorizedException('Session has been revoked.');
-    }
-
-    const newPair = this.tokenService.generatePair(userId, role, sit);
-
-    await this.sessions.update(session.id, {
-      lastActiveAt: new Date(),
-      expiresAt: new Date(Date.now() + SESSION_TTL_MS),
-    });
-
-    return newPair;
-  }
-
-  // ── Logout ────────────────────────────────────────────────────────────────
-
-  /**
-   * Revokes the session identified by the refresh token's `sit` claim.
-   * If the token is missing or malformed we silently skip the DB step —
-   * the cookie is cleared by the controller regardless.
-   */
-  async logout(refreshToken: string | undefined): Promise<void> {
-    if (!refreshToken) return;
-
-    let userId: string;
-    let sit: number;
-
-    try {
-      ({ userId, sit } = this.tokenService.decodeRefresh(refreshToken));
-    } catch {
-      return; // tampered token — nothing to revoke
-    }
-
-    await this.sessions
-      .createQueryBuilder()
-      .update()
-      .set({ revokedAt: new Date() })
-      .where('user_id = :userId AND sit = :sit AND revoked_at IS NULL', {
-        userId,
-        sit,
-      })
-      .execute();
-  }
-
-  // ── Private helpers ───────────────────────────────────────────────────────
-
-  private async buildAuthResult(user: User): Promise<AuthResult> {
-    const tokens = this.tokenService.generatePair(user.id, user.role);
-
-    await this.sessions.save(
-      this.sessions.create({
-        userId: user.id,
-        sit: tokens.sit,
-        secretHash: null,
-        expiresAt: new Date(Date.now() + SESSION_TTL_MS),
-        ipAddress: null,
-        userAgent: null,
-        revokedAt: null,
-      }),
-    );
-
-    return {
-      tokens,
-      responseData: {
-        AccessToken: tokens.accessToken,
-        Role: user.role,
-        Profile: {
-          Email: user.email,
-          Name: user.name,
-          AvatarUrl: user.avatarUrl,
-        },
-      },
-    };
-  }
-
-  /**
-   * Generates a cryptographically random token, stores its SHA-256 hash,
-   * and returns the raw value to be sent to the user once.
-   */
-  private async issueToken(userId: string, type: TokenType): Promise<string> {
-    // Invalidate any existing unused token of the same type for this user
-    await this.tokens
-      .createQueryBuilder()
-      .update()
-      .set({ usedAt: new Date() })
-      .where('user_id = :userId AND type = :type AND used_at IS NULL', {
-        userId,
-        type,
-      })
-      .execute();
-
-    const raw =
-      crypto.randomUUID().replace(/-/g, '') +
-      crypto.randomUUID().replace(/-/g, '');
-    const hash = this.hashRawToken(raw);
-
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1_000); // 1 hour
-
-    await this.tokens.save(
-      this.tokens.create({ userId, type, tokenHash: hash, expiresAt }),
-    );
-
-    return raw;
-  }
-
-  private hashRawToken(raw: string): string {
-    return createHash('sha256').update(raw).digest('hex');
-  }
-
-  private assertTokenValid(record: Token | null): void {
-    if (!record) throw new BadRequestException('Invalid or expired token.');
-    if (record.usedAt)
-      throw new BadRequestException('Token has already been used.');
-    if (record.expiresAt < new Date())
-      throw new BadRequestException('Token has expired.');
+    return this.sessionService.createSession(user);
   }
 }

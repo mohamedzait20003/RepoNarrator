@@ -43,7 +43,7 @@ export default () => ({
       clientSecret: process.env.GITHUB_CLIENT_SECRET ?? '',
       callbackUrl:
         process.env.GITHUB_CALLBACK_URL ??
-        'http://localhost:4000/api/v1/auth/github/callback',
+        'http://localhost:3000/auth/github/callback',
     },
   },
 

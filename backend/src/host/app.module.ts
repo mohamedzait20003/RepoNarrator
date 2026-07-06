@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import type { LoggerOptions } from 'typeorm';
 import configuration from '../shared/Configuration/configuration';
 import { User } from '../modules/identity/entities/user.entity';
@@ -15,6 +16,7 @@ import { Repo } from '../modules/generations/entities/repo.entity';
 import { Generation } from '../modules/generations/entities/generation.entity';
 import { AuditLog } from '../modules/analytics/entities/audit-log.entity';
 import { IdentityModule } from '../modules/identity/identity.module';
+import { SecurityModule } from '../shared/Security/security.module';
 
 const ENTITIES = [
   User,
@@ -37,6 +39,11 @@ const ENTITIES = [
       load: [configuration],
     }),
 
+    // Rate limiting config + storage (global module, but the guard is NOT
+    // applied globally). Auth controllers opt in with `@AuthThrottle()`,
+    // capping them at 5 requests / minute / IP to blunt brute-force + enumeration.
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 5 }]),
+
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -52,6 +59,7 @@ const ENTITIES = [
     }),
 
     IdentityModule,
+    SecurityModule,
   ],
 })
 export class AppModule {}

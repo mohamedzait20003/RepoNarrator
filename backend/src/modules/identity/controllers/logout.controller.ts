@@ -10,14 +10,16 @@ import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 
 import { BaseController } from './base.controller';
-import { AuthService } from '../services/auth.service';
+import { SessionService } from '../services/session.service';
+import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
+@AuthThrottle()
 export class LogoutController extends BaseController {
   private readonly refreshCookieName: string;
 
   constructor(
-    private readonly authService: AuthService,
+    private readonly sessionService: SessionService,
     private readonly config: ConfigService,
   ) {
     super();
@@ -30,7 +32,7 @@ export class LogoutController extends BaseController {
     const cookies = req.cookies as Record<string, string | undefined>;
     const refreshToken: string | undefined = cookies[this.refreshCookieName];
 
-    await this.authService.logout(refreshToken);
+    await this.sessionService.logout(refreshToken);
 
     res.clearCookie(this.refreshCookieName, {
       httpOnly: true,

@@ -1,19 +1,21 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 
 import { BaseController } from './base.controller';
-import { AuthService } from '../services/auth.service';
+import { VerificationService } from '../services/verification.service';
 import { EmailVerifyDto } from '../dto/email-verify.dto';
+import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
+@AuthThrottle()
 export class EmailVerifyController extends BaseController {
-  constructor(private readonly authService: AuthService) {
+  constructor(private readonly verificationService: VerificationService) {
     super();
   }
 
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   async verifyEmail(@Body() dto: EmailVerifyDto) {
-    await this.authService.verifyEmail(dto.token);
+    await this.verificationService.verifyEmail(dto.token);
     return this.message('Email verified. You can now sign in.');
   }
 }

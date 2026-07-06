@@ -9,7 +9,11 @@ import { Session } from './entities/session.entity';
 
 import { TokenService } from './services/token.service';
 import { AuthService } from './services/auth.service';
+import { SessionService } from './services/session.service';
+import { VerificationService } from './services/verification.service';
 import { MailFactory } from './factories/Mail.Factory';
+
+import { TOKEN_SERVICE } from '../../shared/Contracts/token-service.contract';
 
 import { GithubController } from './controllers/github.controller';
 import { SignUpController } from './controllers/sign-up.controller';
@@ -23,8 +27,6 @@ import { LogoutController } from './controllers/logout.controller';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, UserProfile, Token, Session]),
-
-    // JwtModule with no defaults — TokenService supplies secrets per-call via ConfigService.
     JwtModule.register({}),
   ],
   controllers: [
@@ -37,7 +39,14 @@ import { LogoutController } from './controllers/logout.controller';
     EmailVerifyController,
     LogoutController,
   ],
-  providers: [TokenService, AuthService, MailFactory],
-  exports: [TokenService],
+  providers: [
+    TokenService,
+    { provide: TOKEN_SERVICE, useExisting: TokenService },
+    AuthService,
+    SessionService,
+    VerificationService,
+    MailFactory,
+  ],
+  exports: [TokenService, TOKEN_SERVICE],
 })
 export class IdentityModule {}

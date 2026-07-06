@@ -12,8 +12,10 @@ import type { Response } from 'express';
 import { BaseController } from './base.controller';
 import { AuthService } from '../services/auth.service';
 import { SignInDto } from '../dto/sign-in.dto';
+import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
+@AuthThrottle()
 export class SignInController extends BaseController {
   private readonly refreshCookieName: string;
 

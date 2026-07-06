@@ -4,6 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
+import type { ITokenService } from '../../../shared/Contracts/token-service.contract';
+
 /**
  * Payload embedded in the access JWT.
  * `dig` = HMAC-SHA256(sub:role:sit, digestSecret).
@@ -61,10 +63,16 @@ export interface RefreshResponseData {
   AccessToken: string;
 }
 
+/** A freshly-issued token pair plus the response payload for the client. */
+export interface AuthResult {
+  tokens: TokenPair;
+  responseData: AuthResponseData;
+}
+
 // Service
 
 @Injectable()
-export class TokenService {
+export class TokenService implements ITokenService {
   private readonly accessSecret: string;
   private readonly refreshSecret: string;
   private readonly digestSecret: string;

@@ -1,12 +1,14 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 
 import { BaseController } from './base.controller';
-import { AuthService } from '../services/auth.service';
+import { VerificationService } from '../services/verification.service';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
+import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
+@AuthThrottle()
 export class ForgotPasswordController extends BaseController {
-  constructor(private readonly authService: AuthService) {
+  constructor(private readonly verificationService: VerificationService) {
     super();
   }
 
@@ -18,7 +20,7 @@ export class ForgotPasswordController extends BaseController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
-    await this.authService.forgotPassword(dto.email);
+    await this.verificationService.forgotPassword(dto.email);
     return this.message(
       'If that email is registered you will receive a reset link shortly.',
     );

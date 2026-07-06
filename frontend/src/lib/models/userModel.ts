@@ -68,6 +68,12 @@ export interface EmailVerifyRequest extends BaseRequest {
   token: string;
 }
 
+/** Sent to POST /auth/github after GitHub redirects back with ?code&state. */
+export interface GithubExchangeRequest extends BaseRequest {
+  code: string;
+  state: string;
+}
+
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface AuthProfile {
