@@ -1,3 +1,4 @@
+import { jwtDecode } from "jwt-decode";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useStore } from "@/store";
@@ -9,7 +10,6 @@ import {
   resetPassword,
   verifyEmail,
   githubAuthUrl,
-  githubCallback,
 } from "@/lib/handlers/userHandlers";
 import type {
   SignUpRequest,
@@ -17,8 +17,8 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   EmailVerifyRequest,
-  GithubCallbackRequest,
   AuthResponseData,
+  Role,
 } from "@/lib/models/userModel";
 
 const USER_QUERY_KEY = ["user"] as const;
@@ -65,16 +65,23 @@ export function useGithubAuth() {
   };
 }
 
+/**
+ * Completes the GitHub OAuth redirect. The backend has already exchanged the
+ * code and set the HttpOnly refresh cookie, then handed us a short-lived access
+ * token on the callback URL. We decode the role from the token and populate the
+ * store; profile fields hydrate later once a profile endpoint exists.
+ */
 export function useGithubCallback() {
   const applyAuth = useApplyAuth();
 
-  return useMutation({
-    mutationFn: (data: GithubCallbackRequest) => githubCallback(data),
-    onSuccess: (res) => {
-      if (res.Data)
-        applyAuth(res.Data);
-    },
-  });
+  return (accessToken: string) => {
+    const { role } = jwtDecode<{ role: Role }>(accessToken);
+    applyAuth({
+      AccessToken: accessToken,
+      Role: role,
+      Profile: { Email: null, Name: null, AvatarUrl: null },
+    });
+  };
 }
 
 export function useLogout() {

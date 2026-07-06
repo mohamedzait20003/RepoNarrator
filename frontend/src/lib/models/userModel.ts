@@ -68,11 +68,6 @@ export interface EmailVerifyRequest extends BaseRequest {
   token: string;
 }
 
-/** Query params carried on GET /auth/github/callback (GitHub redirects here). */
-export interface GithubCallbackRequest extends BaseRequest {
-  code: string;
-}
-
 // ─── Responses ───────────────────────────────────────────────────────────────
 
 export interface AuthProfile {

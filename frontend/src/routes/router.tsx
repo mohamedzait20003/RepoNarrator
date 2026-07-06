@@ -5,9 +5,11 @@ import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 
 import { mainRoutes } from "@/modules/main";
+import { authRoutes } from "@/modules/auth";
 
 const routeTree = rootRoute.addChildren([
   ...mainRoutes,
+  ...authRoutes,
 ]);
 
 function createQueryClient() {

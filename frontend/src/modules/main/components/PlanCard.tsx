@@ -98,7 +98,7 @@ export function PlanCard({
           }`}
           size="lg"
         >
-          <Link to="/plans">{cta}</Link>
+          <Link to="/auth/sign-up">{cta}</Link>
         </Button>
       </CardFooter>
     </Card>

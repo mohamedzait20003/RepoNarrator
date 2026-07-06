@@ -35,7 +35,7 @@ const RootComponent = () => {
     }, [mode]);
 
     const pathname = useRouterState({ select: (s) => s.location.pathname });
-    const isAdmin = pathname.startsWith("/admin");
+    const isBare = pathname.startsWith("/admin");
 
     const page = (
         <Suspense fallback={<ContentSkeleton />}>
@@ -45,7 +45,7 @@ const RootComponent = () => {
 
     return (
         <RootDocument>
-            {isAdmin ? (
+            {isBare ? (
                 page
             ) : (
                 <div className="flex flex-col min-h-screen">

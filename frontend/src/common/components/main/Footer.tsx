@@ -14,7 +14,6 @@ const LINKS = {
   Legal: [
     { label: "Terms of Service", to: "/terms" },
     { label: "Privacy Policy", to: "/privacy" },
-    { label: "Cookie Policy", to: "/cookies" },
   ],
 } as const;
 
@@ -22,9 +21,9 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-background">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+        <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           {/* Brand */}
-          <div className="col-span-2 md:col-span-1">
+          <div className="md:max-w-xs md:shrink-0">
             <Link to="/" className="flex items-center gap-2 font-bold text-foreground">
               <span className="flex h-7 w-7 items-center justify-center rounded-md bg-violet-600">
                 <BookOpen className="h-3.5 w-3.5 text-white" />
@@ -38,7 +37,7 @@ export function Footer() {
             </p>
             <div className="mt-4 flex gap-3">
               <a
-                href="https://github.com"
+                href="https://github.com/mohamedzait20003/RepoNarrator"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
@@ -58,27 +57,30 @@ export function Footer() {
             </div>
           </div>
 
-          {(Object.entries(LINKS) as [string, readonly { label: string; to: string }[]][]).map(
-            ([heading, items]) => (
-              <div key={heading}>
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-foreground">
-                  {heading}
-                </h3>
-                <ul className="space-y-2">
-                  {items.map(({ label, to }) => (
-                    <li key={to}>
-                      <Link
-                        to={to}
-                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        {label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ),
-          )}
+          {/* Link columns — grouped together, left-aligned */}
+          <div className="flex flex-wrap gap-10 sm:gap-16">
+            {(Object.entries(LINKS) as [string, readonly { label: string; to: string }[]][]).map(
+              ([heading, items]) => (
+                <div key={heading}>
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-foreground">
+                    {heading}
+                  </h3>
+                  <ul className="space-y-2">
+                    {items.map(({ label, to }) => (
+                      <li key={to}>
+                        <Link
+                          to={to}
+                          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          {label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ),
+            )}
+          </div>
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">

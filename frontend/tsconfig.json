@@ -1,16 +1,24 @@
 {
   "compilerOptions": {
-    "jsx": "react-jsx",
-    "strict": true,
-    "moduleResolution": "Bundler",
-    "module": "ESNext",
     "target": "ES2022",
-    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "verbatimModuleSyntax": true,
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "strict": true,
     "strictNullChecks": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "types": ["vite/client"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
     }
-  }
+  },
+  "include": ["src", "vite.config.ts"]
 }

@@ -9,7 +9,6 @@ import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
-import Cookies from "./pages/Cookies";
 
 const landingRoute = createRoute({
     getParentRoute: () => rootRoute,
@@ -54,12 +53,6 @@ const termsRoute = createRoute({
     component: Terms,
 });
 
-const cookiesRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: "/cookies",
-    component: Cookies,
-});
-
 export const mainRoutes = [
     landingRoute,
     aboutRoute,
@@ -68,5 +61,4 @@ export const mainRoutes = [
     contactRoute,
     privacyRoute,
     termsRoute,
-    cookiesRoute,
 ];

@@ -6,7 +6,6 @@ import type {
   ForgotPasswordRequest,
   ResetPasswordRequest,
   EmailVerifyRequest,
-  GithubCallbackRequest,
   AuthResponse,
 } from "../models/userModel";
 
@@ -42,11 +41,4 @@ export async function verifyEmail(data: EmailVerifyRequest): Promise<BaseRespons
 
 export function githubAuthUrl(): string {
   return `${baseApi.defaults.baseURL ?? ""}/auth/github`;
-}
-
-export async function githubCallback(data: GithubCallbackRequest): Promise<AuthResponse> {
-  const res = await baseApi.get<AuthResponse>("/auth/github/callback", {
-    params: { code: data.code },
-  });
-  return res.data;
 }

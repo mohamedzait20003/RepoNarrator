@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 import { FaGithub } from "react-icons/fa6";
 import { Button } from "@/common/components/ui/button";
@@ -18,10 +19,10 @@ export function CtaSection() {
           size="lg"
           className="mt-8 gap-2 bg-violet-600 text-white shadow-lg shadow-violet-500/20 hover:bg-violet-700"
         >
-          <a href="/auth/github">
+          <Link to="/auth/sign-up">
             <FaGithub className="h-4 w-4" />
             Get started for free
-          </a>
+          </Link>
         </Button>
       </div>
     </section>

@@ -1,15 +1,12 @@
 import {
   Controller,
   Get,
-  HttpCode,
-  HttpStatus,
   Query,
-  Redirect,
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 
 import { BaseController } from './base.controller';
 import { AuthService, GithubUserData } from '../services/auth.service';
@@ -20,6 +17,7 @@ export class GithubController extends BaseController {
   private readonly clientSecret: string;
   private readonly callbackUrl: string;
   private readonly refreshCookieName: string;
+  private readonly frontendUrl: string;
 
   constructor(
     private readonly authService: AuthService,
@@ -30,39 +28,50 @@ export class GithubController extends BaseController {
     this.clientSecret = this.config.get<string>('auth.github.clientSecret')!;
     this.callbackUrl = this.config.get<string>('auth.github.callbackUrl')!;
     this.refreshCookieName = this.config.get<string>('auth.refreshCookieName')!;
+    this.frontendUrl = this.config.get<string>('app.frontendUrl')!;
   }
 
-  /** Redirects the browser to GitHub's OAuth authorization page. */
+  /**
+   * Redirects the browser to GitHub's OAuth authorization page.
+   * Uses res.redirect directly so the global ResponseInterceptor doesn't wrap it.
+   */
   @Get('github')
-  @Redirect()
-  initiateOAuth() {
+  initiateOAuth(@Res() res: Response) {
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.callbackUrl,
       scope: 'read:user user:email',
     });
-    return { url: `https://github.com/login/oauth/authorize?${params}` };
+    res.redirect(
+      `https://github.com/login/oauth/authorize?${params.toString()}`,
+    );
   }
 
   /**
-   * GitHub redirects here with ?code=xxx after the user authorises.
-   * Exchanges the code for a GitHub access token, fetches the user profile,
-   * then signs the user in or creates their account (upsert).
+   * GitHub redirects the browser here with ?code after the user authorises.
+   * We exchange the code, upsert the user, set the HttpOnly refresh cookie, then
+   * redirect the browser to the frontend callback route with a short-lived
+   * access token (or an error code on failure).
    */
   @Get('github/callback')
-  @HttpCode(HttpStatus.OK)
   async callback(
-    @Query('code') code: string,
-    @Res({ passthrough: true }) res: Response,
+    @Query('code') code: string | undefined,
+    @Res() res: Response,
   ) {
-    if (!code) throw new UnauthorizedException('No OAuth code received.');
+    const target = (query: string) =>
+      res.redirect(`${this.frontendUrl}/auth/github/callback${query}`);
 
-    const githubUser = await this.exchangeCode(code);
-    const { tokens, responseData } =
-      await this.authService.githubAuth(githubUser);
+    if (!code) return target('?error=access_denied');
 
-    this.setRefreshCookie(res, tokens.refreshToken);
-    return this.ok(responseData, 'GitHub sign-in successful.');
+    try {
+      const githubUser = await this.exchangeCode(code);
+      const { tokens } = await this.authService.githubAuth(githubUser);
+
+      this.setRefreshCookie(res, tokens.refreshToken);
+      return target(`?token=${encodeURIComponent(tokens.accessToken)}`);
+    } catch {
+      return target('?error=github_failed');
+    }
   }
 
   // ── Private ───────────────────────────────────────────────────────────────

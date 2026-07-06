@@ -22,9 +22,9 @@ reponarrator/
     ├── workers/                # Background job workers (LangChain generation queue)
     ├── data-source.ts         # TypeORM CLI data source
     └── src/
-        ├── modules/           # Feature modules (users, admin, plans, subscriptions,
-        │                      #   resumes, repos, generations, audit), each with
-        │                      #   controllers/ services/ repositories/ entities/ dto/
+        ├── modules/           # Feature modules (identity, subscription, generations,
+        │                      #   resumes, analytics), each with
+        │                      #   controllers/ services/ entities/ dto/
         ├── host/              # App bootstrap: app.module.ts, main.ts
         └── shared/
             ├── Domain/        # Enums + cross-module interfaces
@@ -76,6 +76,6 @@ and `REDIS_URL` at whatever instances you run locally.
 
 ## Admin access
 
-Admins are a **separate table** from users with their own login. Admin accounts are restricted
-to the `@reponarratoradmin.com` email domain (enforced by both the auth service and a database
-`CHECK` constraint).
+Admin privileges are **role-based**, not a separate table — the `users.role` enum
+(`user`, `support`, `super_admin`) governs access. The `@reponarratoradmin.com` email domain is
+reserved for admin accounts: public sign-up with that domain is rejected by the auth service.

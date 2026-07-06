@@ -36,10 +36,10 @@ export function HeroSection() {
             size="lg"
             className="gap-2 bg-violet-600 text-white shadow-lg shadow-violet-500/20 hover:bg-violet-700"
           >
-            <a href="/auth/github">
+            <Link to="/auth/sign-up">
               <FaGithub className="h-4 w-4" />
               Connect with GitHub — it's free
-            </a>
+            </Link>
           </Button>
 
           <Button asChild variant="outline" size="lg" className="gap-2">

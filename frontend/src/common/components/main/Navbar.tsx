@@ -57,13 +57,20 @@ export function Navbar() {
             {mode === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
-          <a
-            href="/auth/github"
+          <Link
+            to="/auth/sign-in"
+            className="hidden rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:block"
+          >
+            Sign in
+          </Link>
+
+          <Link
+            to="/auth/sign-up"
             className="hidden items-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700 md:flex"
           >
             <FaGithub className="h-4 w-4" />
             Get started
-          </a>
+          </Link>
 
           <button
             onClick={() => setOpen((v) => !v)}
@@ -93,14 +100,21 @@ export function Navbar() {
                 {label}
               </Link>
             ))}
-            <a
-              href="/auth/github"
+            <Link
+              to="/auth/sign-in"
               onClick={() => setOpen(false)}
-              className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
+              className="mt-2 rounded-md px-3 py-2.5 text-center text-sm font-medium text-muted-foreground hover:bg-muted"
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/auth/sign-up"
+              onClick={() => setOpen(false)}
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
             >
               <FaGithub className="h-4 w-4" />
-              Connect with GitHub
-            </a>
+              Get started
+            </Link>
           </nav>
         </div>
       )}

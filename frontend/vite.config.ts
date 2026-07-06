@@ -1,6 +1,5 @@
-import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
-import tsconfigPaths from "vite-tsconfig-paths";
+import viteReact from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
@@ -24,7 +23,6 @@ export default defineConfig({
     plugins: [
         codeRoutingManifestShim,
         tailwindcss(),
-        tsconfigPaths(),
         tanstackStart({
             srcDirectory: "src",
             router: {
@@ -32,10 +30,9 @@ export default defineConfig({
                 enableRouteGeneration: false,
             },
         }),
+        viteReact({ exclude: [/[\\/]root\.tsx$/] }),
     ],
     resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./src"),
-        },
+        tsconfigPaths: true,
     },
 });
