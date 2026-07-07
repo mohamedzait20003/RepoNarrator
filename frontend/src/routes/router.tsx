@@ -6,10 +6,12 @@ import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 
 import { mainRoutes } from "@/modules/main";
 import { authRoutes } from "@/modules/auth";
+import { clientRoutes } from "@/modules/client";
 
 const routeTree = rootRoute.addChildren([
   ...mainRoutes,
   ...authRoutes,
+  ...clientRoutes,
 ]);
 
 function createQueryClient() {

@@ -36,6 +36,7 @@ const RootComponent = () => {
 
     const pathname = useRouterState({ select: (s) => s.location.pathname });
     const isBare = pathname.startsWith("/admin");
+    const isDashboard = pathname.startsWith("/dashboard");
 
     const page = (
         <Suspense fallback={<ContentSkeleton />}>
@@ -51,7 +52,13 @@ const RootComponent = () => {
                 <div className="flex flex-col min-h-screen">
                     <Navbar />
                     <main className="flex-1 flex flex-col">
-                        {page}
+                        {isDashboard ? (
+                            <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+                                {page}
+                            </div>
+                        ) : (
+                            page
+                        )}
                     </main>
                     <Footer />
                 </div>
