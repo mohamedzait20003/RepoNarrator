@@ -11,6 +11,7 @@ import { TokenService } from './services/token.service';
 import { AuthService } from './services/auth.service';
 import { SessionService } from './services/session.service';
 import { VerificationService } from './services/verification.service';
+import { EncryptionService } from './services/encryption.service';
 import { MailFactory } from './factories/Mail.Factory';
 
 import { TOKEN_SERVICE } from '../../shared/Contracts/token-service.contract';
@@ -45,6 +46,7 @@ import { LogoutController } from './controllers/logout.controller';
     AuthService,
     SessionService,
     VerificationService,
+    EncryptionService,
     MailFactory,
   ],
   exports: [TokenService, TOKEN_SERVICE],

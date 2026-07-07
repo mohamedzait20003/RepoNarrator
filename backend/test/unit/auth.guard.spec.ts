@@ -1,9 +1,15 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  ForbiddenException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 
 import { AuthGuard } from '../../src/shared/Guards/auth.guard';
 import { ITokenService } from '../../src/shared/Contracts/token-service.contract';
+import { UserRole } from '../../src/shared/Domain/enums/user-role.enum';
 
 const REFRESH_COOKIE = 'rnt';
 
@@ -17,11 +23,14 @@ function makeConfig(): ConfigService {
 function contextWith(req: Partial<Request>): ExecutionContext {
   return {
     switchToHttp: () => ({ getRequest: () => req }),
+    getHandler: () => null,
+    getClass: () => null,
   } as unknown as ExecutionContext;
 }
 
 describe('AuthGuard', () => {
   let tokens: jest.Mocked<ITokenService>;
+  let reflector: jest.Mocked<Pick<Reflector, 'getAllAndOverride'>>;
   let guard: AuthGuard;
 
   beforeEach(() => {
@@ -30,7 +39,13 @@ describe('AuthGuard', () => {
       verifyRefreshPair: jest.fn(),
       decodeRefresh: jest.fn(),
     };
-    guard = new AuthGuard(tokens, makeConfig());
+    // Default: no @Roles metadata -> authentication alone suffices.
+    reflector = { getAllAndOverride: jest.fn().mockReturnValue(undefined) };
+    guard = new AuthGuard(
+      tokens,
+      reflector as unknown as Reflector,
+      makeConfig(),
+    );
   });
 
   it('allows a valid access token and attaches the user', () => {
@@ -90,5 +105,41 @@ describe('AuthGuard', () => {
     });
 
     expect(() => guard.canActivate(ctx)).toThrow(/access token expired/i);
+  });
+
+  it('allows an authenticated user whose role satisfies @Roles', () => {
+    tokens.verifyAccess.mockReturnValue({
+      sub: 'admin-1',
+      role: 'super_admin',
+      dig: 'd',
+      sit: 100,
+      type: 'access',
+    });
+    reflector.getAllAndOverride.mockReturnValue([UserRole.SUPER_ADMIN]);
+
+    const ctx = contextWith({
+      headers: { authorization: 'Bearer good' },
+      cookies: {},
+    });
+
+    expect(guard.canActivate(ctx)).toBe(true);
+  });
+
+  it('rejects with 403 when the role is not permitted', () => {
+    tokens.verifyAccess.mockReturnValue({
+      sub: 'user-1',
+      role: 'user',
+      dig: 'd',
+      sit: 100,
+      type: 'access',
+    });
+    reflector.getAllAndOverride.mockReturnValue([UserRole.SUPER_ADMIN]);
+
+    const ctx = contextWith({
+      headers: { authorization: 'Bearer good' },
+      cookies: {},
+    });
+
+    expect(() => guard.canActivate(ctx)).toThrow(ForbiddenException);
   });
 });

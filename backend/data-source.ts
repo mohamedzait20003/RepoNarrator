@@ -3,8 +3,7 @@ import * as dotenv from 'dotenv';
 import { resolve } from 'path';
 import { DataSource } from 'typeorm';
 
-// Load .env from repo root so the CLI has DATABASE_URL without a running Nest app.
-dotenv.config({ path: resolve(__dirname, '../.env') });
+dotenv.config({ path: resolve(__dirname, '.env') });
 
 import { User } from './src/modules/identity/entities/user.entity';
 import { UserProfile } from './src/modules/identity/entities/profile.entity';

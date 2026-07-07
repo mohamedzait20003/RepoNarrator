@@ -20,12 +20,13 @@ function makeUser(): User {
 }
 
 describe('SessionService', () => {
-  let sessions: jest.Mocked<
-    Pick<
-      Repository<Session>,
-      'create' | 'save' | 'findOne' | 'update' | 'createQueryBuilder'
-    >
-  >;
+  let sessions: {
+    create: jest.Mock;
+    save: jest.Mock;
+    findOne: jest.Mock;
+    update: jest.Mock;
+    createQueryBuilder: jest.Mock;
+  };
   let tokenService: jest.Mocked<
     Pick<TokenService, 'generatePair' | 'verifyRefreshPair' | 'decodeRefresh'>
   >;
@@ -94,7 +95,7 @@ describe('SessionService', () => {
       sessions.findOne.mockResolvedValue({
         id: 'sess-1',
         revokedAt: null,
-      } as Session);
+      });
       const newPair = { ...PAIR, accessToken: 'access-2' };
       tokenService.generatePair.mockReturnValue(newPair);
 
@@ -121,7 +122,7 @@ describe('SessionService', () => {
       sessions.findOne.mockResolvedValue({
         id: 'sess-1',
         revokedAt: new Date(),
-      } as Session);
+      });
 
       await expect(service.refresh('old-access', 'refresh')).rejects.toThrow(
         UnauthorizedException,

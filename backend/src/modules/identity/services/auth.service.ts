@@ -16,6 +16,7 @@ import { UserRole } from '../../../shared/Domain/enums/user-role.enum';
 import { AuthResult } from './token.service';
 import { SessionService } from './session.service';
 import { VerificationService } from './verification.service';
+import { EncryptionService } from './encryption.service';
 import { SignUpDto } from '../dto/sign-up.dto';
 import { SignInDto } from '../dto/sign-in.dto';
 
@@ -39,6 +40,7 @@ export class AuthService {
     private readonly profiles: Repository<UserProfile>,
     private readonly sessionService: SessionService,
     private readonly verificationService: VerificationService,
+    private readonly encryption: EncryptionService,
     private readonly config: ConfigService,
   ) {
     this.adminEmailDomain = this.config.get<string>('auth.adminEmailDomain')!;
@@ -54,6 +56,9 @@ export class AuthService {
       where: { githubId: String(data.id) },
     });
 
+    // Store the OAuth token encrypted at rest (AES-256-GCM) for later Octokit use.
+    const githubOauthTokenEnc = this.encryption.encrypt(data.accessToken);
+
     if (!user) {
       user = this.users.create({
         githubId: String(data.id),
@@ -61,6 +66,7 @@ export class AuthService {
         email: data.email,
         name: data.name,
         avatarUrl: data.avatar_url,
+        githubOauthTokenEnc,
         role: UserRole.USER,
         emailVerifiedAt: new Date(),
       });
@@ -69,12 +75,13 @@ export class AuthService {
       // Create the paired UserProfile (shared PK)
       await this.profiles.save(this.profiles.create({ id: user.id }));
     } else {
-      // Keep GitHub data fresh on each sign-in
+      // Keep GitHub data + token fresh on each sign-in
       await this.users.update(user.id, {
         githubLogin: data.login,
         email: data.email ?? user.email,
         name: data.name ?? user.name,
         avatarUrl: data.avatar_url,
+        githubOauthTokenEnc,
         emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
       });
       user = (await this.users.findOne({ where: { id: user.id } }))!;
