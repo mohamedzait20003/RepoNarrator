@@ -4,10 +4,11 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   Res,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 
 import { BaseController } from './base.controller';
 import { AuthService } from '../services/auth.service';
@@ -35,9 +36,13 @@ export class SignInController extends BaseController {
   @HttpCode(HttpStatus.OK)
   async signIn(
     @Body() dto: SignInDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { tokens, responseData } = await this.authService.signIn(dto);
+    const { tokens, responseData } = await this.authService.signIn(dto, {
+      ipAddress: req.ip ?? null,
+      userAgent: req.headers['user-agent'] ?? null,
+    });
 
     res.cookie(this.refreshCookieName, tokens.refreshToken, {
       httpOnly: true,

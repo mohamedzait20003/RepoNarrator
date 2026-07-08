@@ -89,8 +89,13 @@ export class GithubController extends BaseController {
     res.clearCookie(this.stateCookieName, { path: '/api/v1/auth' });
 
     const githubUser = await this.exchangeCode(dto.code);
-    const { tokens, responseData } =
-      await this.authService.githubAuth(githubUser);
+    const { tokens, responseData } = await this.authService.githubAuth(
+      githubUser,
+      {
+        ipAddress: req.ip ?? null,
+        userAgent: req.headers['user-agent'] ?? null,
+      },
+    );
 
     this.setRefreshCookie(res, tokens.refreshToken);
     return this.ok(responseData, 'GitHub sign-in successful.');

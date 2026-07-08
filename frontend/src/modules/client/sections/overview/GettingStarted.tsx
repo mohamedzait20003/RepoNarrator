@@ -26,7 +26,7 @@ export function GettingStarted() {
     {
       title: "Connect GitHub",
       description: "Link your account so we can read your repositories.",
-      done: Boolean(userData?.githubLogin),
+      done: Boolean(userData?.githubLinked),
       to: "/dashboard/settings",
       cta: "Connect",
     },

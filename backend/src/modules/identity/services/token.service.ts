@@ -44,11 +44,21 @@ export interface TokenPair {
   sit: number;
 }
 
+/** A currently-active session for the account (device/where signed in). */
+export interface SessionInfo {
+  Location: string | null;
+  DeviceType: string | null;
+}
+
 /** Profile snippet returned to the client on sign-in / GitHub sign. */
 export interface AuthProfile {
   Email: string | null;
   Name: string | null;
   AvatarUrl: string | null;
+  /** Whether a GitHub account is linked (repos can be synced). */
+  GithubLinked: boolean;
+  /** Active (non-revoked, unexpired) sessions for this account. */
+  Sessions: SessionInfo[];
 }
 
 /** Shape of the sign-in / GitHub-sign response Data payload. */

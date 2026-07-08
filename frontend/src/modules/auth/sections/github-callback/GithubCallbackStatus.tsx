@@ -4,6 +4,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/common/components/ui/button";
 import { useGithubCallback } from "@/lib/hooks/useUser";
+import { roleHome } from "@/lib/auth/roleHome";
 
 export function GithubCallbackStatus() {
   const { code, state, error } = useSearch({ strict: false }) as {
@@ -28,7 +29,8 @@ export function GithubCallbackStatus() {
     github.mutate(
       { code, state },
       {
-        onSuccess: () => void navigate({ to: "/", replace: true }),
+        onSuccess: (res) =>
+          void navigate({ to: roleHome(res.Data?.Role), replace: true }),
         onError: () => setFailed(true),
       },
     );

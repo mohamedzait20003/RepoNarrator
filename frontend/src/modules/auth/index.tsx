@@ -1,6 +1,7 @@
 import { createRoute } from "@tanstack/react-router";
 
 import { rootRoute } from "@/root";
+import useGuestGuard from "@/lib/guards/guestGuard";
 
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -19,18 +20,24 @@ const signInRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth/sign-in",
   component: SignIn,
+  beforeLoad: () => useGuestGuard(),
+  ssr: false,
 });
 
 const signUpRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth/sign-up",
   component: SignUp,
+  beforeLoad: () => useGuestGuard(),
+  ssr: false,
 });
 
 const forgotPasswordRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/auth/forgot-password",
   component: ForgotPassword,
+  beforeLoad: () => useGuestGuard(),
+  ssr: false,
 });
 
 const resetPasswordRoute = createRoute({

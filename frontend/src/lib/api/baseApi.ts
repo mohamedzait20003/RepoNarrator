@@ -3,7 +3,7 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 import { useStore } from "@/store";
 import type { RefreshResponse } from "@/lib/models/userModel";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:8080/api";
+const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:4000/api/v1";
 
 export const baseApi = axios.create({
   baseURL: BASE_URL,

@@ -8,9 +8,10 @@ import {
   CardAction,
   CardContent,
 } from "@/common/components/ui/card";
+import type { DashboardGeneration } from "@/lib/models/dashboardModel";
 import { StatusBadge } from "../../components/StatusBadge";
 import { EmptyState } from "../../components/EmptyState";
-import { placeholderGenerations } from "../../placeholder";
+import type { GenerationStatus } from "../../placeholder";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -19,8 +20,12 @@ function formatDate(iso: string): string {
   });
 }
 
-export function RecentGenerations() {
-  const recent = placeholderGenerations.slice(0, 4);
+export function RecentGenerations({
+  items,
+}: {
+  items: DashboardGeneration[];
+}) {
+  const recent = items.slice(0, 4);
 
   return (
     <Card className="h-full">
@@ -47,18 +52,18 @@ export function RecentGenerations() {
           <ul className="divide-y divide-border">
             {recent.map((g) => (
               <li
-                key={g.id}
+                key={g.Id}
                 className="flex items-center justify-between gap-3 px-5 py-3"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">
-                    {g.repo}
+                    {g.Repo}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDate(g.createdAt)}
+                    {formatDate(g.CreatedAt)}
                   </p>
                 </div>
-                <StatusBadge status={g.status} />
+                <StatusBadge status={g.Status as GenerationStatus} />
               </li>
             ))}
           </ul>

@@ -13,7 +13,7 @@ import { useStore } from "@/store";
 import { useGithubAuth } from "@/lib/hooks/useUser";
 
 export function ConnectionsCard() {
-  const gh = useStore((s) => s.userData?.githubLogin);
+  const linked = useStore((s) => s.userData?.githubLinked);
   const github = useGithubAuth();
 
   return (
@@ -32,17 +32,19 @@ export function ConnectionsCard() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium text-foreground">GitHub</p>
-              {gh ? (
+              {linked ? (
                 <Badge variant="emerald">Connected</Badge>
               ) : (
                 <Badge variant="outline">Not connected</Badge>
               )}
             </div>
             <p className="truncate text-xs text-muted-foreground">
-              {gh ? `@${gh}` : "Sync repositories and open pull requests."}
+              {linked
+                ? "Linked — repositories and pull requests enabled."
+                : "Sync repositories and open pull requests."}
             </p>
           </div>
-          {gh ? (
+          {linked ? (
             <Button variant="outline" size="sm">
               Disconnect
             </Button>

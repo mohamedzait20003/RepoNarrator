@@ -23,6 +23,7 @@ describe('SessionService', () => {
   let sessions: {
     create: jest.Mock;
     save: jest.Mock;
+    find: jest.Mock;
     findOne: jest.Mock;
     update: jest.Mock;
     createQueryBuilder: jest.Mock;
@@ -45,6 +46,7 @@ describe('SessionService', () => {
     sessions = {
       create: jest.fn((v) => v as Session),
       save: jest.fn().mockResolvedValue({}),
+      find: jest.fn().mockResolvedValue([]),
       findOne: jest.fn(),
       update: jest.fn().mockResolvedValue({}),
       createQueryBuilder: jest.fn().mockReturnValue(qb),
@@ -76,12 +78,37 @@ describe('SessionService', () => {
           Email: 'user@example.com',
           Name: 'Test User',
           AvatarUrl: 'https://img/av.png',
+          GithubLinked: false,
+          Sessions: [],
         },
       });
       expect(sessions.save).toHaveBeenCalledTimes(1);
       expect(sessions.create).toHaveBeenCalledWith(
         expect.objectContaining({ userId: 'user-1', sit: 111 }),
       );
+    });
+
+    it('captures request context and maps active sessions to device/location', async () => {
+      tokenService.generatePair.mockReturnValue(PAIR);
+      sessions.find.mockResolvedValue([
+        {
+          ipAddress: '127.0.0.1',
+          userAgent:
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36',
+        },
+      ]);
+
+      const result = await service.createSession(makeUser(), {
+        ipAddress: '127.0.0.1',
+        userAgent: 'ua',
+      });
+
+      expect(sessions.create).toHaveBeenCalledWith(
+        expect.objectContaining({ ipAddress: '127.0.0.1', userAgent: 'ua' }),
+      );
+      expect(result.responseData.Profile.Sessions).toEqual([
+        { Location: 'Local', DeviceType: 'Desktop · Chrome' },
+      ]);
     });
   });
 

@@ -34,11 +34,20 @@ export interface Subscription {
   plan: Plan;
 }
 
+/** A currently-active session for the account (device + where signed in). */
+export interface ActiveSession {
+  location: string | null;
+  deviceType: string | null;
+}
+
 export interface UserProfile {
   email: string | null;
   name: string | null;
   avatarUrl: string | null;
   githubLogin: string | null;
+  /** Whether a GitHub account is linked (repos can be synced). */
+  githubLinked: boolean;
+  sessions: ActiveSession[];
   subscription: Subscription | null;
 }
 
@@ -76,10 +85,18 @@ export interface GithubExchangeRequest extends BaseRequest {
 
 // ─── Responses ───────────────────────────────────────────────────────────────
 
+/** Active-session descriptor as returned by the auth endpoints. */
+export interface SessionInfo {
+  Location: string | null;
+  DeviceType: string | null;
+}
+
 export interface AuthProfile {
   Email: string | null;
   Name: string | null;
   AvatarUrl: string | null;
+  GithubLinked: boolean;
+  Sessions: SessionInfo[];
 }
 
 /** Returned by both /auth/sign-in and /auth/github/callback. */

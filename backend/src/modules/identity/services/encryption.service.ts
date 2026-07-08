@@ -8,22 +8,9 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH = 12; // 96-bit nonce, the GCM standard
-const KEY_HEX_LENGTH = 64; // 32 bytes -> AES-256
+const IV_LENGTH = 12;
+const KEY_HEX_LENGTH = 64;
 
-/**
- * Symmetric encryption for secrets at rest — currently the stored GitHub OAuth
- * token (`users.github_oauth_token_enc`). Lives inside the identity module
- * because that's the only owner of the ciphertext; expose it via a contract
- * (like `TOKEN_SERVICE`) only if another module ever needs it directly.
- *
- * Uses AES-256-GCM, which is authenticated: tampering with the ciphertext is
- * detected on decrypt. Each call uses a fresh random IV. The serialized form is
- * `iv:authTag:ciphertext`, all base64.
- *
- * The 32-byte key comes from `TOKEN_ENCRYPTION_KEY` (64 hex chars). The service
- * fails fast at construction if the key is missing or malformed.
- */
 @Injectable()
 export class EncryptionService {
   private readonly key: Buffer;

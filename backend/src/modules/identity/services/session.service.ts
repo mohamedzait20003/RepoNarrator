@@ -1,12 +1,23 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, MoreThan, Repository } from 'typeorm';
 
 import { User } from '../entities/user.entity';
 import { Session } from '../entities/session.entity';
-import { TokenService, AuthResult, TokenPair } from './token.service';
+import {
+  TokenService,
+  AuthResult,
+  TokenPair,
+  SessionInfo,
+} from './token.service';
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1_000;
+
+/** Request metadata captured when a session is created. */
+export interface SessionContext {
+  ipAddress: string | null;
+  userAgent: string | null;
+}
 
 /**
  * Owns the lifecycle of authenticated sessions: issuing token pairs, persisting
@@ -22,10 +33,14 @@ export class SessionService {
   ) {}
 
   /**
-   * Issues a fresh token pair for a signed-in user and records the session so
-   * it can later be revoked. Returns the tokens plus the client response payload.
+   * Issues a fresh token pair for a signed-in user and records the session
+   * (with its device/IP context) so it can later be revoked. Returns the tokens
+   * plus the client response payload, including the account's active sessions.
    */
-  async createSession(user: User): Promise<AuthResult> {
+  async createSession(
+    user: User,
+    context?: SessionContext,
+  ): Promise<AuthResult> {
     const tokens = this.tokenService.generatePair(user.id, user.role);
 
     await this.sessions.save(
@@ -34,8 +49,8 @@ export class SessionService {
         sit: tokens.sit,
         secretHash: null,
         expiresAt: new Date(Date.now() + SESSION_TTL_MS),
-        ipAddress: null,
-        userAgent: null,
+        ipAddress: context?.ipAddress ?? null,
+        userAgent: context?.userAgent ?? null,
         revokedAt: null,
       }),
     );
@@ -49,9 +64,27 @@ export class SessionService {
           Email: user.email,
           Name: user.name,
           AvatarUrl: user.avatarUrl,
+          GithubLinked: Boolean(user.githubId),
+          Sessions: await this.getActiveSessions(user.id),
         },
       },
     };
+  }
+
+  /**
+   * Lists the account's active (non-revoked, unexpired) sessions as
+   * device/location descriptors, most-recently-active first.
+   */
+  private async getActiveSessions(userId: string): Promise<SessionInfo[]> {
+    const rows = await this.sessions.find({
+      where: { userId, revokedAt: IsNull(), expiresAt: MoreThan(new Date()) },
+      order: { lastActiveAt: 'DESC' },
+    });
+
+    return rows.map((row) => ({
+      Location: resolveLocation(row.ipAddress),
+      DeviceType: parseDeviceType(row.userAgent),
+    }));
   }
 
   /**
@@ -110,4 +143,47 @@ export class SessionService {
       })
       .execute();
   }
+}
+
+/** Coarse device descriptor (kind + browser) from a User-Agent string. */
+function parseDeviceType(ua: string | null): string | null {
+  if (!ua) return null;
+
+  const kind = /iPad|Tablet/i.test(ua)
+    ? 'Tablet'
+    : /Mobi|Android|iPhone|iPod/i.test(ua)
+      ? 'Mobile'
+      : 'Desktop';
+
+  const browser = /Edg/i.test(ua)
+    ? 'Edge'
+    : /OPR|Opera/i.test(ua)
+      ? 'Opera'
+      : /Firefox/i.test(ua)
+        ? 'Firefox'
+        : /Chrome/i.test(ua)
+          ? 'Chrome'
+          : /Safari/i.test(ua)
+            ? 'Safari'
+            : null;
+
+  return browser ? `${kind} · ${browser}` : kind;
+}
+
+/**
+ * Best-effort location from an IP. Loopback/private ranges resolve to "Local";
+ * plug a geo-IP provider in here to resolve public IPs to a city/country.
+ */
+function resolveLocation(ip: string | null): string | null {
+  if (!ip) return null;
+
+  const addr = ip.replace(/^::ffff:/, '');
+  const isLocal =
+    addr === '::1' ||
+    addr === '127.0.0.1' ||
+    addr.startsWith('10.') ||
+    addr.startsWith('192.168.') ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(addr);
+
+  return isLocal ? 'Local' : null;
 }

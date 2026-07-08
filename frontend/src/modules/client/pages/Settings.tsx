@@ -1,6 +1,7 @@
 import { PageIntro } from "../components/PageIntro";
 import { ProfileCard } from "../sections/settings/ProfileCard";
 import { ConnectionsCard } from "../sections/settings/ConnectionsCard";
+import { ActiveSessions } from "../sections/settings/ActiveSessions";
 import { DangerZone } from "../sections/settings/DangerZone";
 
 export default function Settings() {
@@ -12,6 +13,7 @@ export default function Settings() {
       />
       <ProfileCard />
       <ConnectionsCard />
+      <ActiveSessions />
       <DangerZone />
     </div>
   );

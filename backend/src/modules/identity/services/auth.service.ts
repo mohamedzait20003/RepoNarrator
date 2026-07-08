@@ -14,7 +14,7 @@ import { UserProfile } from '../entities/profile.entity';
 import { UserRole } from '../../../shared/Domain/enums/user-role.enum';
 
 import { AuthResult } from './token.service';
-import { SessionService } from './session.service';
+import { SessionService, SessionContext } from './session.service';
 import { VerificationService } from './verification.service';
 import { EncryptionService } from './encryption.service';
 import { SignUpDto } from '../dto/sign-up.dto';
@@ -51,7 +51,10 @@ export class AuthService {
    * Always sets emailVerifiedAt (GitHub has already verified the email) and
    * creates the UserProfile on first login.
    */
-  async githubAuth(data: GithubUserData): Promise<AuthResult> {
+  async githubAuth(
+    data: GithubUserData,
+    context?: SessionContext,
+  ): Promise<AuthResult> {
     let user = await this.users.findOne({
       where: { githubId: String(data.id) },
     });
@@ -87,7 +90,7 @@ export class AuthService {
       user = (await this.users.findOne({ where: { id: user.id } }))!;
     }
 
-    return this.sessionService.createSession(user);
+    return this.sessionService.createSession(user, context);
   }
 
   /**
@@ -121,7 +124,7 @@ export class AuthService {
     await this.verificationService.sendAccountVerification(user);
   }
 
-  async signIn(dto: SignInDto): Promise<AuthResult> {
+  async signIn(dto: SignInDto, context?: SessionContext): Promise<AuthResult> {
     const user = await this.users.findOne({ where: { email: dto.email } });
 
     if (!user || !user.passwordHash) {
@@ -135,6 +138,6 @@ export class AuthService {
     const passwordMatch = await bcrypt.compare(dto.password, user.passwordHash);
     if (!passwordMatch) throw new UnauthorizedException('Invalid credentials.');
 
-    return this.sessionService.createSession(user);
+    return this.sessionService.createSession(user, context);
   }
 }

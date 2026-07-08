@@ -26,9 +26,9 @@ function relative(iso: string | null): string {
 }
 
 export function RepoList() {
-  const gh = useStore((s) => s.userData?.githubLogin);
+  const linked = useStore((s) => s.userData?.githubLinked);
 
-  if (!gh) {
+  if (!linked) {
     return (
       <Card className="py-0">
         <EmptyState

@@ -7,11 +7,13 @@ import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { mainRoutes } from "@/modules/main";
 import { authRoutes } from "@/modules/auth";
 import { clientRoutes } from "@/modules/client";
+import { adminRoutes } from "@/modules/admin";
 
 const routeTree = rootRoute.addChildren([
   ...mainRoutes,
   ...authRoutes,
   ...clientRoutes,
+  ...adminRoutes,
 ]);
 
 function createQueryClient() {

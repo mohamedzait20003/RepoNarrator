@@ -16,6 +16,7 @@ import { Repo } from '../modules/generations/entities/repo.entity';
 import { Generation } from '../modules/generations/entities/generation.entity';
 import { AuditLog } from '../modules/analytics/entities/audit-log.entity';
 import { IdentityModule } from '../modules/identity/identity.module';
+import { AnalyticsModule } from '../modules/analytics/analytics.module';
 
 const ENTITIES = [
   User,
@@ -54,6 +55,7 @@ const ENTITIES = [
     }),
 
     IdentityModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

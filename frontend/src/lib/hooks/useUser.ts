@@ -34,6 +34,11 @@ function useApplyAuth() {
       name: payload.Profile.Name,
       avatarUrl: payload.Profile.AvatarUrl,
       githubLogin: null,
+      githubLinked: payload.Profile.GithubLinked,
+      sessions: payload.Profile.Sessions.map((s) => ({
+        location: s.Location,
+        deviceType: s.DeviceType,
+      })),
       subscription: null,
     });
     queryClient.setQueryData(USER_QUERY_KEY, payload);
