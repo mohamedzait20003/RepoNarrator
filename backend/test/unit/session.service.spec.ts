@@ -1,11 +1,11 @@
 import { UnauthorizedException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 
-import { SessionService } from '../../src/modules/identity/services/session.service';
-import { TokenService } from '../../src/modules/identity/services/token.service';
-import { Session } from '../../src/modules/identity/entities/session.entity';
-import { User } from '../../src/modules/identity/entities/user.entity';
-import { UserRole } from '../../src/shared/Domain/enums/user-role.enum';
+import { SessionService } from '@/modules/identity/services/session.service';
+import { TokenService } from '@/modules/identity/services/token.service';
+import { Session } from '@/modules/identity/entities/session.entity';
+import { User } from '@/modules/identity/entities/user.entity';
+import { UserRole } from '@/shared/Domain/enums/user-role.enum';
 
 const PAIR = { accessToken: 'access', refreshToken: 'refresh', sit: 111 };
 

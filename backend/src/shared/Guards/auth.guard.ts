@@ -10,10 +10,10 @@ import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 
-import { TOKEN_SERVICE } from '../Contracts/token-service.contract';
-import type { ITokenService } from '../Contracts/token-service.contract';
-import { UserRole } from '../Domain/enums/user-role.enum';
-import type { AuthenticatedUser } from '../Contracts/authenticated-user.contract';
+import { TOKEN_SERVICE } from '@/shared/Contracts/token-service.contract';
+import type { ITokenService } from '@/shared/Contracts/token-service.contract';
+import { UserRole } from '@/shared/Domain/enums/user-role.enum';
+import type { AuthenticatedUser } from '@/shared/Contracts/authenticated-user.contract';
 
 /** Metadata key holding the roles allowed on a route — set by the `@Roles()` decorator. */
 export const ROLES_KEY = 'roles';

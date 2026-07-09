@@ -5,11 +5,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { User } from '../entities/user.entity';
-import { Token } from '../entities/token.entity';
-import { TokenType } from '../../../shared/Domain/enums/token-type.enum';
-import { ResetPasswordDto } from '../dto/reset-password.dto';
-import { MailFactory } from '../factories/Mail.Factory';
+import { User } from '@/modules/identity/entities/user.entity';
+import { Token } from '@/modules/identity/entities/token.entity';
+import { TokenType } from '@/shared/Domain/enums/token-type.enum';
+import { ResetPasswordDto } from '@/modules/identity/dto/reset-password.dto';
+import { MailFactory } from '@/modules/identity/factories/Mail.Factory';
 
 const BCRYPT_ROUNDS = 12;
 const TOKEN_TTL_MS = 60 * 60 * 1_000; // 1 hour

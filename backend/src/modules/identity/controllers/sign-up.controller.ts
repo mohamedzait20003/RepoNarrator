@@ -1,9 +1,9 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 
-import { BaseController } from './base.controller';
-import { AuthService } from '../services/auth.service';
-import { SignUpDto } from '../dto/sign-up.dto';
-import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
+import { BaseController } from '@/modules/identity/controllers/base.controller';
+import { AuthService } from '@/modules/identity/services/auth.service';
+import { SignUpDto } from '@/modules/identity/dto/sign-up.dto';
+import { AuthThrottle } from '@/shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
 @AuthThrottle()

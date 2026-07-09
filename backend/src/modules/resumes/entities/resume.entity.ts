@@ -6,7 +6,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ResumeSource } from '../../../shared/Domain/enums/resume-source.enum';
+import { ResumeSource } from '@/shared/Domain/enums/resume-source.enum';
 
 @Entity({ name: 'resumes' })
 export class Resume {

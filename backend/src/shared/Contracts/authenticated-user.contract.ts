@@ -1,4 +1,4 @@
-import { UserRole } from '../Domain/enums/user-role.enum';
+import { UserRole } from '@/shared/Domain/enums/user-role.enum';
 
 export interface AuthenticatedUser {
   userId: string;

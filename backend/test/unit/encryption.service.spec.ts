@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 
-import { EncryptionService } from '../../src/modules/identity/services/encryption.service';
+import { EncryptionService } from '@/modules/identity/services/encryption.service';
 
 // 64 hex chars = 32 bytes (AES-256).
 const KEY = 'a'.repeat(64);

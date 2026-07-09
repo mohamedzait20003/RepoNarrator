@@ -1,6 +1,6 @@
 import { DataSource } from 'typeorm';
-import { Plan } from '../../src/modules/subscription/entities/plan.entity';
-import { ModelTier, PlanTier } from '../../src/shared/Domain';
+import { Plan } from '@/modules/subscription/entities/plan.entity';
+import { ModelTier, PlanTier } from '@/shared/Domain';
 
 export async function seedPlans(dataSource: DataSource): Promise<void> {
   const repo = dataSource.getRepository(Plan);

@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
-import type { ITokenService } from '../../../shared/Contracts/token-service.contract';
+import type { ITokenService } from '@/shared/Contracts/token-service.contract';
 
 /**
  * Payload embedded in the access JWT.

@@ -9,9 +9,9 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 
-import { BaseController } from './base.controller';
-import { SessionService } from '../services/session.service';
-import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
+import { BaseController } from '@/modules/identity/controllers/base.controller';
+import { SessionService } from '@/modules/identity/services/session.service';
+import { AuthThrottle } from '@/shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
 @AuthThrottle()

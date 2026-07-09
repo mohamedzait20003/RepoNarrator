@@ -2,14 +2,14 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IsNull, MoreThan, Repository } from 'typeorm';
 
-import { User } from '../entities/user.entity';
-import { Session } from '../entities/session.entity';
+import { User } from '@/modules/identity/entities/user.entity';
+import { Session } from '@/modules/identity/entities/session.entity';
 import {
   TokenService,
   AuthResult,
   TokenPair,
   SessionInfo,
-} from './token.service';
+} from '@/modules/identity/services/token.service';
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1_000;
 

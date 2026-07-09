@@ -1,7 +1,7 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import type { Request } from 'express';
 
-import type { AuthenticatedUser } from '../Contracts/authenticated-user.contract';
+import type { AuthenticatedUser } from '@/shared/Contracts/authenticated-user.contract';
 
 /**
  * Injects the authenticated identity set by `AuthGuard`.

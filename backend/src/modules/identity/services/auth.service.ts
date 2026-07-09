@@ -9,16 +9,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { User } from '../entities/user.entity';
-import { UserProfile } from '../entities/profile.entity';
-import { UserRole } from '../../../shared/Domain/enums/user-role.enum';
+import { User } from '@/modules/identity/entities/user.entity';
+import { UserProfile } from '@/modules/identity/entities/profile.entity';
+import { UserRole } from '@/shared/Domain/enums/user-role.enum';
 
-import { AuthResult } from './token.service';
-import { SessionService, SessionContext } from './session.service';
-import { VerificationService } from './verification.service';
-import { EncryptionService } from './encryption.service';
-import { SignUpDto } from '../dto/sign-up.dto';
-import { SignInDto } from '../dto/sign-in.dto';
+import { AuthResult } from '@/modules/identity/services/token.service';
+import { SessionService, SessionContext } from '@/modules/identity/services/session.service';
+import { VerificationService } from '@/modules/identity/services/verification.service';
+import { EncryptionService } from '@/modules/identity/services/encryption.service';
+import { SignUpDto } from '@/modules/identity/dto/sign-up.dto';
+import { SignInDto } from '@/modules/identity/dto/sign-in.dto';
 
 const BCRYPT_ROUNDS = 12;
 export interface GithubUserData {

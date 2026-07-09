@@ -13,10 +13,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 
-import { BaseController } from './base.controller';
-import { AuthService, GithubUserData } from '../services/auth.service';
-import { GithubExchangeDto } from '../dto/github-exchange.dto';
-import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
+import { BaseController } from '@/modules/identity/controllers/base.controller';
+import { AuthService, GithubUserData } from '@/modules/identity/services/auth.service';
+import { GithubExchangeDto } from '@/modules/identity/dto/github-exchange.dto';
+import { AuthThrottle } from '@/shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
 @AuthThrottle()

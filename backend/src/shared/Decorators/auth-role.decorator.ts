@@ -1,7 +1,7 @@
 import { applyDecorators, SetMetadata, UseGuards } from '@nestjs/common';
 
-import { AuthGuard, ROLES_KEY } from '../Guards/auth.guard';
-import { UserRole } from '../Domain/enums/user-role.enum';
+import { AuthGuard, ROLES_KEY } from '@/shared/Guards/auth.guard';
+import { UserRole } from '@/shared/Domain/enums/user-role.enum';
 
 /**
  * Protects an endpoint (or controller). Requires a valid access token

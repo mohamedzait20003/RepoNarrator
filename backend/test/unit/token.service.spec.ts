@@ -2,7 +2,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 
-import { TokenService } from '../../src/modules/identity/services/token.service';
+import { TokenService } from '@/modules/identity/services/token.service';
 
 const SECRETS: Record<string, string> = {
   'auth.accessSecret': 'access-secret',

@@ -9,7 +9,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { SubscriptionStatus } from '../../../shared/Domain/enums/subscription-status.enum';
+import { SubscriptionStatus } from '@/shared/Domain/enums/subscription-status.enum';
 
 @Entity({ name: 'subscriptions' })
 export class Subscription {

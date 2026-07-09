@@ -2,18 +2,18 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 
-import { User } from '../identity/entities/user.entity';
-import { Subscription } from '../subscription/entities/subscription.entity';
-import { Plan } from '../subscription/entities/plan.entity';
-import { UsageCounter } from '../subscription/entities/usage-counter.entity';
-import { Repo } from '../generations/entities/repo.entity';
-import { Generation } from '../generations/entities/generation.entity';
+import { User } from '@/modules/identity/entities/user.entity';
+import { Subscription } from '@/modules/subscription/entities/subscription.entity';
+import { Plan } from '@/modules/subscription/entities/plan.entity';
+import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
+import { Repo } from '@/modules/generations/entities/repo.entity';
+import { Generation } from '@/modules/generations/entities/generation.entity';
 
-import { IdentityModule } from '../identity/identity.module';
-import { AuthGuard } from '../../shared/Guards/auth.guard';
+import { IdentityModule } from '@/modules/identity/identity.module';
+import { AuthGuard } from '@/shared/Guards/auth.guard';
 
-import { DashboardController } from './controllers/dashboard.controller';
-import { DashboardService } from './services/dashboard.service';
+import { DashboardController } from '@/modules/analytics/controllers/dashboard.controller';
+import { DashboardService } from '@/modules/analytics/services/dashboard.service';
 
 @Module({
   imports: [

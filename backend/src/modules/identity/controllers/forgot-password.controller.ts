@@ -1,9 +1,9 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 
-import { BaseController } from './base.controller';
-import { VerificationService } from '../services/verification.service';
-import { ForgotPasswordDto } from '../dto/forgot-password.dto';
-import { AuthThrottle } from '../../../shared/Decorators/auth-throttle.decorator';
+import { BaseController } from '@/modules/identity/controllers/base.controller';
+import { VerificationService } from '@/modules/identity/services/verification.service';
+import { ForgotPasswordDto } from '@/modules/identity/dto/forgot-password.dto';
+import { AuthThrottle } from '@/shared/Decorators/auth-throttle.decorator';
 
 @Controller('auth')
 @AuthThrottle()

@@ -4,14 +4,14 @@ import { Repository } from 'typeorm';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import type { Cache } from 'cache-manager';
 
-import { User } from '../../identity/entities/user.entity';
-import { Subscription } from '../../subscription/entities/subscription.entity';
-import { Plan } from '../../subscription/entities/plan.entity';
-import { UsageCounter } from '../../subscription/entities/usage-counter.entity';
-import { Repo } from '../../generations/entities/repo.entity';
-import { Generation } from '../../generations/entities/generation.entity';
-import { PlanTier } from '../../../shared/Domain/enums/plan-tier.enum';
-import type { DashboardData } from '../dto/dashboard.dto';
+import { User } from '@/modules/identity/entities/user.entity';
+import { Subscription } from '@/modules/subscription/entities/subscription.entity';
+import { Plan } from '@/modules/subscription/entities/plan.entity';
+import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
+import { Repo } from '@/modules/generations/entities/repo.entity';
+import { Generation } from '@/modules/generations/entities/generation.entity';
+import { PlanTier } from '@/shared/Domain/enums/plan-tier.enum';
+import type { DashboardData } from '@/modules/analytics/dto/dashboard.dto';
 
 /** How long a per-user dashboard payload is cached (ms). */
 const DASHBOARD_TTL_MS = 30_000;

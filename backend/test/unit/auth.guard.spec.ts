@@ -7,9 +7,9 @@ import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
 
-import { AuthGuard } from '../../src/shared/Guards/auth.guard';
-import { ITokenService } from '../../src/shared/Contracts/token-service.contract';
-import { UserRole } from '../../src/shared/Domain/enums/user-role.enum';
+import { AuthGuard } from '@/shared/Guards/auth.guard';
+import { ITokenService } from '@/shared/Contracts/token-service.contract';
+import { UserRole } from '@/shared/Domain/enums/user-role.enum';
 
 const REFRESH_COOKIE = 'rnt';
 

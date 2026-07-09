@@ -6,9 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { GenerationStatus } from '../../../shared/Domain/enums/generation-status.enum';
-import { LlmProvider } from '../../../shared/Domain/enums/llm-provider.enum';
-import { PushMode } from '../../../shared/Domain/enums/push-mode.enum';
+import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
+import { LlmProvider } from '@/shared/Domain/enums/llm-provider.enum';
+import { PushMode } from '@/shared/Domain/enums/push-mode.enum';
 
 /** One README generation job, written by the LangChain engine (Commit 5). */
 @Entity({ name: 'generations' })

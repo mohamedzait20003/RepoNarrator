@@ -1,9 +1,9 @@
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 
-import { User } from '../../src/modules/identity/entities/user.entity';
-import { UserProfile } from '../../src/modules/identity/entities/profile.entity';
-import { UserRole } from '../../src/shared/Domain';
+import { User } from '@/modules/identity/entities/user.entity';
+import { UserProfile } from '@/modules/identity/entities/profile.entity';
+import { UserRole } from '@/shared/Domain';
 
 const BCRYPT_ROUNDS = 12;
 

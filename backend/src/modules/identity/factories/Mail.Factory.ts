@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { BaseMailFactory } from '../../../shared/Factories/base-mail.factory';
+import { BaseMailFactory } from '@/shared/Factories/base-mail.factory';
 
 @Injectable()
 export class MailFactory extends BaseMailFactory {
