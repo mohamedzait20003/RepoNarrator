@@ -1,20 +1,16 @@
-import { PageIntro } from "../components/PageIntro";
+import { PageIntro } from "@/modules/client/components/PageIntro";
 import { ProfileCard } from "../sections/settings/ProfileCard";
 import { ConnectionsCard } from "../sections/settings/ConnectionsCard";
-import { ActiveSessions } from "../sections/settings/ActiveSessions";
-import { DangerZone } from "../sections/settings/DangerZone";
 
 export default function Settings() {
   return (
     <div className="space-y-6">
       <PageIntro
         title="Settings"
-        description="Manage your profile, connected accounts, and account status."
+        description="Your profile details and connected accounts."
       />
       <ProfileCard />
       <ConnectionsCard />
-      <ActiveSessions />
-      <DangerZone />
     </div>
   );
 }

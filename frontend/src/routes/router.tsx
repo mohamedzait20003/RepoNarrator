@@ -7,12 +7,14 @@ import { createRouter as createTanStackRouter } from "@tanstack/react-router";
 import { mainRoutes } from "@/modules/main";
 import { authRoutes } from "@/modules/auth";
 import { clientRoutes } from "@/modules/client";
+import { profileRoutes } from "@/modules/profile";
 import { adminRoutes } from "@/modules/admin";
 
 const routeTree = rootRoute.addChildren([
   ...mainRoutes,
   ...authRoutes,
   ...clientRoutes,
+  ...profileRoutes,
   ...adminRoutes,
 ]);
 

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Lock, Star, Github } from "lucide-react";
+import { Lock, Star, Github, Sparkles } from "lucide-react";
 
 import {
   Table,
@@ -13,7 +13,8 @@ import { Card } from "@/common/components/ui/card";
 import { Badge } from "@/common/components/ui/badge";
 import { Button } from "@/common/components/ui/button";
 import { useStore } from "@/store";
-import { EmptyState } from "../../components/EmptyState";
+import { useAccountName } from "@/lib/auth/account";
+import { EmptyState } from "@/modules/client/components/EmptyState";
 import { placeholderRepos } from "../../placeholder";
 
 function relative(iso: string | null): string {
@@ -25,8 +26,15 @@ function relative(iso: string | null): string {
   });
 }
 
-export function RepoList() {
+/** The `owner/owner` profile repo is narrated separately, not listed here. */
+function isProfileRepo(fullName: string): boolean {
+  const [owner, name] = fullName.split("/");
+  return Boolean(owner) && owner === name;
+}
+
+export function RepoGenerateList() {
   const linked = useStore((s) => s.userData?.githubLinked);
+  const name = useAccountName();
 
   if (!linked) {
     return (
@@ -36,14 +44,21 @@ export function RepoList() {
           title="Connect GitHub to see your repositories"
           description="Once connected, we'll list your repositories here so you can generate READMEs for them."
           action={
-            <Button asChild className="bg-violet-600 text-white hover:bg-violet-700">
-              <Link to="/dashboard/settings">Connect GitHub</Link>
+            <Button
+              asChild
+              className="bg-violet-600 text-white hover:bg-violet-700"
+            >
+              <Link to="/customer/$name/profile/settings" params={{ name }}>
+                Connect GitHub
+              </Link>
             </Button>
           }
         />
       </Card>
     );
   }
+
+  const repos = placeholderRepos.filter((r) => !isProfileRepo(r.fullName));
 
   return (
     <Card className="py-0">
@@ -58,7 +73,7 @@ export function RepoList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {placeholderRepos.map((repo) => (
+            {repos.map((repo) => (
               <TableRow key={repo.id}>
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -87,8 +102,9 @@ export function RepoList() {
                 <TableCell className="text-right">
                   <Button
                     size="sm"
-                    className="bg-violet-600 text-white hover:bg-violet-700"
+                    className="gap-1.5 bg-violet-600 text-white hover:bg-violet-700"
                   >
+                    <Sparkles className="h-3.5 w-3.5" />
                     Generate
                   </Button>
                 </TableCell>

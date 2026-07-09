@@ -5,12 +5,13 @@ import useAuthGuard from "@/lib/guards/authGuard";
 import useRoleGuard from "@/lib/guards/roleGuard";
 
 import Overview from "./pages/Overview";
-import Repositories from "./pages/Repositories";
-import Generations from "./pages/Generations";
-import Resume from "./pages/Resume";
-import Billing from "./pages/Billing";
-import Settings from "./pages/Settings";
+import Projects from "./pages/Projects";
 
+/**
+ * Customer dashboard at /customer/$name/* (Overview + Projects), for an
+ * authenticated `user`. Profile routes live in the profile module. Guards run in
+ * beforeLoad; ssr:false so they read the hydrated client store.
+ */
 const guard = () => {
   useAuthGuard();
   useRoleGuard("user");
@@ -18,57 +19,18 @@ const guard = () => {
 
 const overviewRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/dashboard",
+  path: "/customer/$name",
   component: Overview,
   beforeLoad: guard,
   ssr: false,
 });
 
-const repositoriesRoute = createRoute({
+const projectsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/dashboard/repositories",
-  component: Repositories,
+  path: "/customer/$name/projects",
+  component: Projects,
   beforeLoad: guard,
   ssr: false,
 });
 
-const generationsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dashboard/generations",
-  component: Generations,
-  beforeLoad: guard,
-  ssr: false,
-});
-
-const resumeRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dashboard/resume",
-  component: Resume,
-  beforeLoad: guard,
-  ssr: false,
-});
-
-const billingRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dashboard/billing",
-  component: Billing,
-  beforeLoad: guard,
-  ssr: false,
-});
-
-const settingsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/dashboard/settings",
-  component: Settings,
-  beforeLoad: guard,
-  ssr: false,
-});
-
-export const clientRoutes = [
-  overviewRoute,
-  repositoriesRoute,
-  generationsRoute,
-  resumeRoute,
-  billingRoute,
-  settingsRoute,
-];
+export const clientRoutes = [overviewRoute, projectsRoute];

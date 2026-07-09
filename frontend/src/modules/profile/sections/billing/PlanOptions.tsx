@@ -10,7 +10,7 @@ import {
 import { Badge } from "@/common/components/ui/badge";
 import { Button } from "@/common/components/ui/button";
 import { cn } from "@/lib/utils/utils";
-import { placeholderPlan } from "../../placeholder";
+import { useDashboard } from "@/lib/hooks/useDashboard";
 
 interface Tier {
   tier: "free" | "starter" | "pro";
@@ -26,14 +26,25 @@ const TIERS: Tier[] = [
     tier: "free",
     name: "Free",
     price: "$0",
-    features: ["3 repositories", "5 generations / mo", "Manual & PR push"],
+    features: [
+      "3 repositories",
+      "5 repo READMEs / mo",
+      "Narrate Yourself 1× / mo",
+      "Manual & PR push",
+    ],
   },
   {
     tier: "starter",
     name: "Starter",
     price: "$9",
     period: "/mo",
-    features: ["25 repositories", "75 generations / mo", "Private repos", "1 template"],
+    features: [
+      "25 repositories",
+      "75 repo READMEs / mo",
+      "Narrate Yourself 4× / mo",
+      "Private repos",
+      "1 template",
+    ],
     highlight: true,
   },
   {
@@ -43,7 +54,8 @@ const TIERS: Tier[] = [
     period: "/mo",
     features: [
       "Unlimited repositories",
-      "750 generations / mo",
+      "750 repo READMEs / mo",
+      "Unlimited Narrate Yourself",
       "Bulk generate",
       "Direct-to-branch push",
     ],
@@ -51,10 +63,13 @@ const TIERS: Tier[] = [
 ];
 
 export function PlanOptions() {
+  const { data } = useDashboard();
+  const currentTier = data?.Plan.Tier ?? "free";
+
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
       {TIERS.map((t) => {
-        const current = t.tier === placeholderPlan.tier;
+        const current = t.tier === currentTier;
         return (
           <Card
             key={t.tier}

@@ -9,8 +9,9 @@ import {
   CardContent,
 } from "@/common/components/ui/card";
 import type { DashboardGeneration } from "@/lib/models/dashboardModel";
+import { useAccountName } from "@/lib/auth/account";
 import { StatusBadge } from "../../components/StatusBadge";
-import { EmptyState } from "../../components/EmptyState";
+import { EmptyState } from "@/modules/client/components/EmptyState";
 import type { GenerationStatus } from "../../placeholder";
 
 function formatDate(iso: string): string {
@@ -26,6 +27,7 @@ export function RecentGenerations({
   items: DashboardGeneration[];
 }) {
   const recent = items.slice(0, 4);
+  const name = useAccountName();
 
   return (
     <Card className="h-full">
@@ -33,7 +35,8 @@ export function RecentGenerations({
         <CardTitle>Recent generations</CardTitle>
         <CardAction>
           <Link
-            to="/dashboard/generations"
+            to="/customer/$name/projects"
+            params={{ name }}
             className="inline-flex items-center gap-1 text-sm font-medium text-violet-600 hover:underline"
           >
             View all

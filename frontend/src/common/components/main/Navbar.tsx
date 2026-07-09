@@ -6,6 +6,7 @@ import { FaGithub } from "react-icons/fa6";
 import { useStore } from "@/store";
 import { cn } from "@/lib/utils/utils";
 import { useLogout } from "@/lib/hooks/useUser";
+import { accountSlug } from "@/lib/auth/account";
 import {
   Avatar,
   AvatarFallback,
@@ -19,16 +20,16 @@ const MARKETING_NAV = [
   { label: "Contact", to: "/contact" },
 ] as const;
 
-/** Primary dashboard sections shown in the nav on /dashboard routes. */
-const DASH_NAV = [
-  { label: "Overview", to: "/dashboard", exact: true },
-  { label: "Repositories", to: "/dashboard/repositories" },
-  { label: "Generations", to: "/dashboard/generations" },
-  { label: "Resume", to: "/dashboard/resume" },
-  { label: "Billing", to: "/dashboard/billing" },
-] as const;
-
-type NavLink = { label: string; to: string; exact?: boolean };
+/** Client dashboard sections shown when on a /customer route. */
+type CustomerNavItem = {
+  label: string;
+  to: "/customer/$name" | "/customer/$name/projects";
+  exact?: boolean;
+};
+const CUSTOMER_NAV: CustomerNavItem[] = [
+  { label: "Overview", to: "/customer/$name", exact: true },
+  { label: "Projects", to: "/customer/$name/projects" },
+];
 
 function initials(name: string | null, login: string | null): string {
   const base = name?.trim() || login?.trim() || "";
@@ -51,11 +52,22 @@ export function Navbar() {
 
   // Auth-dependent UI only after mount, to avoid an SSR/hydration mismatch.
   const authed = mounted && isAuthenticated;
-  const onDashboard = pathname.startsWith("/dashboard");
-  const links: readonly NavLink[] = onDashboard ? DASH_NAV : MARKETING_NAV;
+  const slug = accountSlug(userData?.name);
+  const onCustomer = pathname.startsWith("/customer");
 
-  const isActive = (l: NavLink) =>
-    l.exact ? pathname === l.to : pathname.startsWith(l.to);
+  const marketingActive = (to: string) => pathname.startsWith(to);
+  const customerActive = (to: string, exact?: boolean) => {
+    const resolved = to.replace("$name", slug);
+    return exact ? pathname === resolved : pathname.startsWith(resolved);
+  };
+
+  const linkBase = (active: boolean) =>
+    cn(
+      "rounded-md px-3 py-2 text-sm font-medium transition-colors",
+      active
+        ? "bg-violet-50 text-violet-600 dark:bg-violet-950/40"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground",
+    );
 
   const signOut = () => {
     setOpen(false);
@@ -65,33 +77,54 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-        <Link
-          to={authed ? "/dashboard" : "/"}
-          className="flex items-center gap-2 font-bold text-foreground"
-        >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600">
-            <BookOpen className="h-4 w-4 text-white" />
-          </span>
-          <span className="text-base">
-            Repo<span className="text-violet-600">Narrator</span>
-          </span>
-        </Link>
+        {authed ? (
+          <Link
+            to="/customer/$name"
+            params={{ name: slug }}
+            className="flex items-center gap-2 font-bold text-foreground"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600">
+              <BookOpen className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-base">
+              Repo<span className="text-violet-600">Narrator</span>
+            </span>
+          </Link>
+        ) : (
+          <Link
+            to="/"
+            className="flex items-center gap-2 font-bold text-foreground"
+          >
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600">
+              <BookOpen className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-base">
+              Repo<span className="text-violet-600">Narrator</span>
+            </span>
+          </Link>
+        )}
 
         <nav className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className={cn(
-                "rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                isActive(l)
-                  ? "bg-violet-50 text-violet-600 dark:bg-violet-950/40"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              {l.label}
-            </Link>
-          ))}
+          {onCustomer
+            ? CUSTOMER_NAV.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  params={{ name: slug }}
+                  className={linkBase(customerActive(l.to, l.exact))}
+                >
+                  {l.label}
+                </Link>
+              ))
+            : MARKETING_NAV.map((l) => (
+                <Link
+                  key={l.to}
+                  to={l.to}
+                  className={linkBase(marketingActive(l.to))}
+                >
+                  {l.label}
+                </Link>
+              ))}
         </nav>
 
         <div className="flex items-center gap-2">
@@ -106,16 +139,18 @@ export function Navbar() {
 
           {authed ? (
             <>
-              {!onDashboard && (
+              {!onCustomer && (
                 <Link
-                  to="/dashboard"
+                  to="/customer/$name"
+                  params={{ name: slug }}
                   className="hidden rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-violet-700 md:block"
                 >
                   Dashboard
                 </Link>
               )}
               <Link
-                to="/dashboard/settings"
+                to="/customer/$name/profile/settings"
+                params={{ name: slug }}
                 aria-label="Account settings"
                 className="rounded-full ring-offset-background transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
               >
@@ -169,27 +204,35 @@ export function Navbar() {
       {open && (
         <div className="border-t border-border bg-background px-4 pb-4 md:hidden">
           <nav className="mt-3 flex flex-col gap-1">
-            {links.map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                onClick={() => setOpen(false)}
-                className={cn(
-                  "rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive(l)
-                    ? "bg-violet-50 text-violet-600 dark:bg-violet-950/40"
-                    : "text-muted-foreground hover:bg-muted",
-                )}
-              >
-                {l.label}
-              </Link>
-            ))}
+            {onCustomer
+              ? CUSTOMER_NAV.map((l) => (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    params={{ name: slug }}
+                    onClick={() => setOpen(false)}
+                    className={linkBase(customerActive(l.to, l.exact))}
+                  >
+                    {l.label}
+                  </Link>
+                ))
+              : MARKETING_NAV.map((l) => (
+                  <Link
+                    key={l.to}
+                    to={l.to}
+                    onClick={() => setOpen(false)}
+                    className={linkBase(marketingActive(l.to))}
+                  >
+                    {l.label}
+                  </Link>
+                ))}
 
             {authed ? (
               <>
-                {!onDashboard && (
+                {!onCustomer && (
                   <Link
-                    to="/dashboard"
+                    to="/customer/$name"
+                    params={{ name: slug }}
                     onClick={() => setOpen(false)}
                     className="mt-2 flex items-center justify-center rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
                   >
@@ -197,11 +240,12 @@ export function Navbar() {
                   </Link>
                 )}
                 <Link
-                  to="/dashboard/settings"
+                  to="/customer/$name/profile/settings"
+                  params={{ name: slug }}
                   onClick={() => setOpen(false)}
                   className="rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted"
                 >
-                  Settings
+                  Profile
                 </Link>
                 <button
                   type="button"

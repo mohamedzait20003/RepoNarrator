@@ -8,7 +8,8 @@ const PLANS = [
     highlight: false,
     features: {
       repos: "3",
-      generations: "5 / month",
+      readmeGenerations: "5 / month",
+      narrations: "1 / month",
       model: "Economy",
       privateRepos: false,
       pushMode: "Manual / PR only",
@@ -25,7 +26,8 @@ const PLANS = [
     highlight: true,
     features: {
       repos: "25",
-      generations: "75 / month",
+      readmeGenerations: "75 / month",
+      narrations: "4 / month",
       model: "Standard",
       privateRepos: true,
       pushMode: "PR auto-open",
@@ -42,7 +44,8 @@ const PLANS = [
     highlight: false,
     features: {
       repos: "Unlimited",
-      generations: "750 / month",
+      readmeGenerations: "750 / month",
+      narrations: "Unlimited",
       model: "Premium",
       privateRepos: true,
       pushMode: "PR or direct push",
@@ -58,7 +61,8 @@ const PLANS = [
 
 const ROWS: { label: string; key: keyof (typeof PLANS)[0]["features"] }[] = [
   { label: "Repositories", key: "repos" },
-  { label: "Generations / month", key: "generations" },
+  { label: "Repo READMEs / month", key: "readmeGenerations" },
+  { label: "Narrate Yourself / month", key: "narrations" },
   { label: "AI model tier", key: "model" },
   { label: "Private repos", key: "privateRepos" },
   { label: "Push mode", key: "pushMode" },

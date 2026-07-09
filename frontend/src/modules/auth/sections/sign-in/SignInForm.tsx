@@ -5,7 +5,7 @@ import { LogIn, Loader2 } from "lucide-react";
 import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
 import { useSignIn } from "@/lib/hooks/useUser";
-import { roleHome } from "@/lib/auth/roleHome";
+import { navigateHome } from "@/lib/auth/account";
 
 import { Field } from "../../components/Field";
 import { FormError } from "../../components/FormError";
@@ -31,10 +31,7 @@ export function SignInForm() {
             { email, password },
             {
               onSuccess: (res) =>
-                void navigate({
-                  to: roleHome(res.Data?.Role),
-                  replace: true,
-                }),
+                navigateHome(navigate, res.Data?.Role, res.Data?.Profile.Name),
             },
           );
         }}

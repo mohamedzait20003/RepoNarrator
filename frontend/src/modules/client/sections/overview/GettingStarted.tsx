@@ -10,38 +10,45 @@ import {
 } from "@/common/components/ui/card";
 import { useStore } from "@/store";
 import { cn } from "@/lib/utils/utils";
+import { useAccountName } from "@/lib/auth/account";
+
+type CustomerTo =
+  | "/customer/$name/profile/settings"
+  | "/customer/$name/profile/resume"
+  | "/customer/$name/projects";
 
 interface Step {
   title: string;
   description: string;
   done: boolean;
-  to: string;
+  to: CustomerTo;
   cta: string;
 }
 
 export function GettingStarted() {
   const userData = useStore((s) => s.userData);
+  const name = useAccountName();
 
   const steps: Step[] = [
     {
       title: "Connect GitHub",
       description: "Link your account so we can read your repositories.",
       done: Boolean(userData?.githubLinked),
-      to: "/dashboard/settings",
+      to: "/customer/$name/profile/settings",
       cta: "Connect",
     },
     {
       title: "Upload your resume",
       description: "Give the AI context so the writing matches your skills.",
       done: false,
-      to: "/dashboard/resume",
+      to: "/customer/$name/profile/resume",
       cta: "Upload",
     },
     {
       title: "Generate a README",
       description: "Pick a repository and open your first pull request.",
       done: false,
-      to: "/dashboard/repositories",
+      to: "/customer/$name/projects",
       cta: "Generate",
     },
   ];
@@ -83,6 +90,7 @@ export function GettingStarted() {
             {!step.done && (
               <Link
                 to={step.to}
+                params={{ name }}
                 className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-violet-600 hover:underline"
               >
                 {step.cta}

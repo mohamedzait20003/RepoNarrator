@@ -6,8 +6,9 @@ import { Button } from "@/common/components/ui/button";
 import { Card } from "@/common/components/ui/card";
 import { Skeleton } from "@/common/components/ui/skeleton";
 import { useDashboard } from "@/lib/hooks/useDashboard";
-import { PageIntro } from "../components/PageIntro";
-import { EmptyState } from "../components/EmptyState";
+import { useAccountName } from "@/lib/auth/account";
+import { PageIntro } from "@/modules/client/components/PageIntro";
+import { EmptyState } from "@/modules/client/components/EmptyState";
 import { StatsGrid } from "../sections/overview/StatsGrid";
 import { RecentGenerations } from "../sections/overview/RecentGenerations";
 import { GettingStarted } from "../sections/overview/GettingStarted";
@@ -30,8 +31,8 @@ function OverviewSkeleton() {
 
 export default function Overview() {
   const userData = useStore((s) => s.userData);
-  const firstName =
-    userData?.name?.split(" ")[0] ?? userData?.githubLogin ?? "there";
+  const firstName = userData?.name?.split(" ")[0] ?? userData?.githubLogin ?? "there";
+  const name = useAccountName();
 
   const { data, isLoading, isError } = useDashboard();
 
@@ -45,7 +46,7 @@ export default function Overview() {
             asChild
             className="gap-1.5 bg-violet-600 text-white hover:bg-violet-700"
           >
-            <Link to="/dashboard/repositories">
+            <Link to="/customer/$name/projects" params={{ name }}>
               <Sparkles className="h-4 w-4" />
               New generation
             </Link>

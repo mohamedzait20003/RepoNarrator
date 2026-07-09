@@ -10,7 +10,7 @@ import {
 } from "@/common/components/ui/card";
 import { Badge } from "@/common/components/ui/badge";
 import { useStore } from "@/store";
-import { EmptyState } from "../../components/EmptyState";
+import { EmptyState } from "@/modules/client/components/EmptyState";
 
 function deviceIcon(deviceType: string | null): LucideIcon {
   if (deviceType && /mobile/i.test(deviceType)) return Smartphone;

@@ -4,7 +4,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 
 import { Button } from "@/common/components/ui/button";
 import { useGithubCallback } from "@/lib/hooks/useUser";
-import { roleHome } from "@/lib/auth/roleHome";
+import { navigateHome } from "@/lib/auth/account";
 
 export function GithubCallbackStatus() {
   const { code, state, error } = useSearch({ strict: false }) as {
@@ -29,12 +29,10 @@ export function GithubCallbackStatus() {
     github.mutate(
       { code, state },
       {
-        onSuccess: (res) =>
-          void navigate({ to: roleHome(res.Data?.Role), replace: true }),
+        onSuccess: (res) => navigateHome(navigate, res.Data?.Role, res.Data?.Profile.Name),
         onError: () => setFailed(true),
       },
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (failed || github.isError) {

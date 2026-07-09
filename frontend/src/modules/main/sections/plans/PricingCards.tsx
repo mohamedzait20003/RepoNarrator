@@ -9,7 +9,13 @@ const PLANS = [
     cta: "Start for free",
     highlight: false,
     popular: false,
-    features: ["3 repos", "5 generations / month", "Economy model", "Manual copy or PR"],
+    features: [
+      "3 repos",
+      "5 repo READMEs / month",
+      "Narrate Yourself 1× / month",
+      "Economy model",
+      "Manual copy or PR",
+    ],
   },
   {
     name: "Starter",
@@ -19,7 +25,14 @@ const PLANS = [
     cta: "Start Starter",
     highlight: true,
     popular: true,
-    features: ["25 repos", "75 / month", "Standard model", "Auto PR", "Private repos"],
+    features: [
+      "25 repos",
+      "75 repo READMEs / month",
+      "Narrate Yourself 4× / month",
+      "Standard model",
+      "Auto PR",
+      "Private repos",
+    ],
   },
   {
     name: "Pro",
@@ -31,7 +44,8 @@ const PLANS = [
     popular: false,
     features: [
       "Unlimited repos",
-      "750 / month",
+      "750 repo READMEs / month",
+      "Unlimited Narrate Yourself",
       "Premium model",
       "Direct push",
       "Bulk generation",

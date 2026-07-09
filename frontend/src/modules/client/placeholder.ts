@@ -63,6 +63,15 @@ export const placeholderUsage: DashUsage = {
 
 export const placeholderRepos: DashRepo[] = [
   {
+    id: "r0",
+    fullName: "octocat/octocat",
+    isPrivate: false,
+    defaultBranch: "main",
+    language: "Markdown",
+    stars: 512,
+    lastAnalyzedAt: null,
+  },
+  {
     id: "r1",
     fullName: "octocat/hello-world",
     isPrivate: false,

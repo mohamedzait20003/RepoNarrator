@@ -9,9 +9,8 @@ import {
   TableCell,
 } from "@/common/components/ui/table";
 import { Card } from "@/common/components/ui/card";
-import { Button } from "@/common/components/ui/button";
 import { StatusBadge } from "../../components/StatusBadge";
-import { EmptyState } from "../../components/EmptyState";
+import { EmptyState } from "@/modules/client/components/EmptyState";
 import type { DashGeneration } from "../../placeholder";
 
 const PUSH_LABEL: Record<DashGeneration["pushMode"], string> = {
@@ -35,12 +34,7 @@ export function GenerationsTable({ items }: { items: DashGeneration[] }) {
         <EmptyState
           icon={Sparkles}
           title="No generations yet"
-          description="Pick a repository and generate your first README — it'll show up here with its status and pull request."
-          action={
-            <Button asChild className="bg-violet-600 text-white hover:bg-violet-700">
-              <a href="/dashboard/repositories">Choose a repository</a>
-            </Button>
-          }
+          description="Generate a README from one of your repositories above — it'll show up here with its status and pull request."
         />
       </Card>
     );

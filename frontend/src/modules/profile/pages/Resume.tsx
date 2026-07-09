@@ -1,4 +1,4 @@
-import { PageIntro } from "../components/PageIntro";
+import { PageIntro } from "@/modules/client/components/PageIntro";
 import { ResumeCard } from "../sections/resume/ResumeCard";
 
 export default function Resume() {

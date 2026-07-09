@@ -1,4 +1,4 @@
-import { PageIntro } from "../components/PageIntro";
+import { PageIntro } from "@/modules/client/components/PageIntro";
 import { CurrentPlan } from "../sections/billing/CurrentPlan";
 import { PlanOptions } from "../sections/billing/PlanOptions";
 

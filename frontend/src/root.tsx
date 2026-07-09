@@ -36,7 +36,7 @@ const RootComponent = () => {
 
     const pathname = useRouterState({ select: (s) => s.location.pathname });
     const isBare = pathname.startsWith("/admin");
-    const isDashboard = pathname.startsWith("/dashboard");
+    const isDashboard = pathname.startsWith("/customer");
 
     const page = (
         <Suspense fallback={<ContentSkeleton />}>
