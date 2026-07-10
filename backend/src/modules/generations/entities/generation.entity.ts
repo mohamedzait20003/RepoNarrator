@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
+import { GenerationKind } from '@/shared/Domain/enums/generation-kind.enum';
 import { LlmProvider } from '@/shared/Domain/enums/llm-provider.enum';
 import { PushMode } from '@/shared/Domain/enums/push-mode.enum';
 
@@ -23,10 +24,22 @@ export class Generation {
   @JoinColumn({ name: 'user_id' })
   profile: any;
 
-  @Column({ type: 'uuid', name: 'repo_id' })
-  repoId: string;
+  /**
+   * What was narrated: a single repo's README ("Narrate about Repos") or the
+   * profile README aggregated from all repos + résumé ("Narrate Yourself").
+   */
+  @Column({
+    type: 'enum',
+    enum: GenerationKind,
+    default: GenerationKind.REPO_README,
+  })
+  kind: GenerationKind;
 
-  @ManyToOne('Repo', 'generations')
+  /** Target repo for `REPO_README`; null for `PROFILE` (spans all repos). */
+  @Column({ type: 'uuid', name: 'repo_id', nullable: true })
+  repoId: string | null;
+
+  @ManyToOne('Repo', 'generations', { nullable: true })
   @JoinColumn({ name: 'repo_id' })
   repo: any;
 

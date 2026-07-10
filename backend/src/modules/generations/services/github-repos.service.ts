@@ -6,11 +6,8 @@ import type { Cache } from 'cache-manager';
 
 import { User } from '@/modules/identity/entities/user.entity';
 import { EncryptionService } from '@/modules/identity/services/encryption.service';
-import {
-  paginate,
-  type PagedResult,
-} from '@/shared/Common/paged-result';
-import type { RepoItem } from '@/modules/repos/dto/repo.dto';
+import { paginate, type PagedResult } from '@/shared/Common/paged-result';
+import type { RepoItem } from '@/modules/generations/dto/repo.dto';
 
 /** The full repo list is cached per user; pages are sliced from it in-memory. */
 const REPOS_TTL_MS = 120_000;
@@ -29,12 +26,7 @@ interface GithubRepo {
   html_url: string;
 }
 
-/**
- * Reads a user's own GitHub repositories (excluding the owner/owner profile
- * repo) using their stored, encrypted OAuth token. The token is decrypted
- * server-side and never leaves the server. The full list is cached per-user to
- * stay well under GitHub's rate limit; pagination is served from that cache.
- */
+
 @Injectable()
 export class GithubReposService {
   constructor(

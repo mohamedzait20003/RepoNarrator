@@ -6,9 +6,13 @@ import { User } from '@/modules/identity/entities/user.entity';
 import { IdentityModule } from '@/modules/identity/identity.module';
 import { AuthGuard } from '@/shared/Guards/auth.guard';
 
-import { ReposController } from '@/modules/repos/controllers/repos.controller';
-import { GithubReposService } from '@/modules/repos/services/github-repos.service';
+import { ReposController } from '@/modules/generations/controllers/repos.controller';
+import { GithubReposService } from '@/modules/generations/services/github-repos.service';
 
+/**
+ * Generation module — repo listing today; per-repo README generation ("Narrate
+ * about Repos") and profile narration ("Narrate Yourself") land here (Commit 5).
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
@@ -20,4 +24,4 @@ import { GithubReposService } from '@/modules/repos/services/github-repos.servic
   controllers: [ReposController],
   providers: [GithubReposService, AuthGuard],
 })
-export class ReposModule {}
+export class GenerationsModule {}

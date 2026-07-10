@@ -25,6 +25,11 @@ export class UsageCounter {
   @Column({ type: 'date', name: 'period_start' })
   periodStart: string;
 
+  /** Per-repo README generations used this period (vs `Plan.generationLimit`). */
   @Column({ type: 'int', name: 'generations_used', default: 0 })
   generationsUsed: number;
+
+  /** "Narrate Yourself" runs used this period (vs `PlanFeatures.profileNarrations`). */
+  @Column({ type: 'int', name: 'profile_narrations_used', default: 0 })
+  profileNarrationsUsed: number;
 }

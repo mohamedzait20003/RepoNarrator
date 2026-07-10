@@ -14,7 +14,10 @@ import { UserProfile } from '@/modules/identity/entities/profile.entity';
 import { UserRole } from '@/shared/Domain/enums/user-role.enum';
 
 import { AuthResult } from '@/modules/identity/services/token.service';
-import { SessionService, SessionContext } from '@/modules/identity/services/session.service';
+import {
+  SessionService,
+  SessionContext,
+} from '@/modules/identity/services/session.service';
 import { VerificationService } from '@/modules/identity/services/verification.service';
 import { EncryptionService } from '@/modules/identity/services/encryption.service';
 import { SignUpDto } from '@/modules/identity/dto/sign-up.dto';

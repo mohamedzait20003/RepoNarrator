@@ -10,7 +10,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 
-import { BaseController } from '@/modules/identity/controllers/base.controller';
+import { BaseController } from '@/shared/Domain/base.controller';
 import { SessionService } from '@/modules/identity/services/session.service';
 import { AuthThrottle } from '@/shared/Decorators/auth-throttle.decorator';
 

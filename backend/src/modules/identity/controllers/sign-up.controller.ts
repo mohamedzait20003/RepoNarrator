@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 
-import { BaseController } from '@/modules/identity/controllers/base.controller';
+import { BaseController } from '@/shared/Domain/base.controller';
 import { AuthService } from '@/modules/identity/services/auth.service';
 import { SignUpDto } from '@/modules/identity/dto/sign-up.dto';
 import { AuthThrottle } from '@/shared/Decorators/auth-throttle.decorator';

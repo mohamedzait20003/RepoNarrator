@@ -5,9 +5,9 @@ import { CurrentUser } from '@/shared/Decorators/current-user.decorator';
 import { UserRole } from '@/shared/Domain/enums/user-role.enum';
 import type { AuthenticatedUser } from '@/shared/Contracts/authenticated-user.contract';
 import type { PagedResult } from '@/shared/Common/paged-result';
-import { GithubReposService } from '@/modules/repos/services/github-repos.service';
-import { ListReposQuery } from '@/modules/repos/dto/list-repos.query';
-import type { RepoItem } from '@/modules/repos/dto/repo.dto';
+import { GithubReposService } from '@/modules/generations/services/github-repos.service';
+import { ListReposQuery } from '@/modules/generations/dto/list-repos.query';
+import type { RepoItem } from '@/modules/generations/dto/repo.dto';
 
 @Controller('repos')
 export class ReposController {

@@ -30,6 +30,10 @@ export class Plan {
   @Column({ type: 'int', name: 'generation_limit', default: 5 })
   generationLimit: number;
 
+  /** Max saved résumés (upload or link). -1 = unlimited. */
+  @Column({ type: 'int', name: 'resume_limit', default: 1 })
+  resumeLimit: number;
+
   @Column({
     type: 'enum',
     enum: ModelTier,

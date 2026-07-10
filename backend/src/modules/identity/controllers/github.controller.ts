@@ -13,8 +13,11 @@ import {
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 
-import { BaseController } from '@/modules/identity/controllers/base.controller';
-import { AuthService, GithubUserData } from '@/modules/identity/services/auth.service';
+import { BaseController } from '@/shared/Domain/base.controller';
+import {
+  AuthService,
+  GithubUserData,
+} from '@/modules/identity/services/auth.service';
 import { GithubExchangeDto } from '@/modules/identity/dto/github-exchange.dto';
 import { AuthThrottle } from '@/shared/Decorators/auth-throttle.decorator';
 

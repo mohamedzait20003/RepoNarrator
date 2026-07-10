@@ -14,6 +14,8 @@ export async function seedPlans(dataSource: DataSource): Promise<void> {
       repoLimit: 3,
       // Per-repo README generations per month.
       generationLimit: 5,
+      // Saved résumés (delete to swap on Free).
+      resumeLimit: 1,
       modelTier: ModelTier.ECONOMY,
       model: 'claude-haiku-4-5-20251001',
       features: {
@@ -32,6 +34,7 @@ export async function seedPlans(dataSource: DataSource): Promise<void> {
       priceMonthly: 900,
       repoLimit: 25,
       generationLimit: 75,
+      resumeLimit: 5,
       modelTier: ModelTier.STANDARD,
       model: 'claude-sonnet-4-6',
       features: {
@@ -50,6 +53,7 @@ export async function seedPlans(dataSource: DataSource): Promise<void> {
       priceMonthly: 2900,
       repoLimit: -1,
       generationLimit: 750,
+      resumeLimit: -1,
       modelTier: ModelTier.PREMIUM,
       model: 'claude-opus-4-8',
       features: {
