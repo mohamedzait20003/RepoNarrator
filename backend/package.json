@@ -19,6 +19,7 @@
     "migration:revert": "npm run typeorm -- migration:revert",
     "seed": "ts-node -r tsconfig-paths/register database/seeds/run-seed.ts",
     "worker:mail": "ts-node -r tsconfig-paths/register workers/mail/mail.worker.ts",
+    "worker:narration": "ts-node -r tsconfig-paths/register workers/narration/narration.worker.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

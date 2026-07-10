@@ -50,12 +50,28 @@ export class Generation {
   @JoinColumn({ name: 'resume_id' })
   resume: any;
 
+  /** The user's steering description ("Narrate Yourself" intent). */
+  @Column({ type: 'text', nullable: true })
+  intent: string | null;
+
   @Column({
     type: 'enum',
     enum: GenerationStatus,
     default: GenerationStatus.QUEUED,
   })
   status: GenerationStatus;
+
+  /** Fine-grained progress within a running job (gathering/analyzing/drafting/…). */
+  @Column({ type: 'text', nullable: true })
+  phase: string | null;
+
+  /** The catalog model chosen (nullable — snapshot below survives its deletion). */
+  @Column({ type: 'uuid', name: 'ai_model_id', nullable: true })
+  aiModelId: string | null;
+
+  @ManyToOne('AiModel', { nullable: true })
+  @JoinColumn({ name: 'ai_model_id' })
+  aiModel: any;
 
   @Column({ type: 'enum', enum: LlmProvider, nullable: true })
   provider: LlmProvider | null;
