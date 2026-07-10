@@ -7,23 +7,21 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { randomUUID } from 'crypto';
-import { extname, join } from 'path';
-import { mkdir, unlink, writeFile } from 'fs/promises';
+import { extname } from 'path';
 
 import { Resume } from '@/modules/resumes/entities/resume.entity';
 import { Subscription } from '@/modules/subscription/entities/subscription.entity';
 import { Plan } from '@/modules/subscription/entities/plan.entity';
 import { ResumeSource } from '@/shared/Domain/enums/resume-source.enum';
 import { PlanTier } from '@/shared/Domain/enums/plan-tier.enum';
+import { R2StorageService } from '@/modules/resumes/services/r2-storage.service';
 import type { CreateResumeDto } from '@/modules/resumes/dto/create-resume.dto';
 import type {
+  ResumeListView,
   ResumeView,
   UploadedResumeFile,
 } from '@/modules/resumes/dto/resume.dto';
 
-/** Uploads live under <cwd>/uploads/resumes; fileUrl stores the "resumes/<key>" key. */
-const UPLOADS_ROOT = join(process.cwd(), 'uploads');
-const RESUME_DIR = join(UPLOADS_ROOT, 'resumes');
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME = new Set([
   'application/pdf',
@@ -32,9 +30,12 @@ const ALLOWED_MIME = new Set([
 ]);
 
 /**
- * Saved résumés — an uploaded file or an external link. The number a user may
- * keep is capped by their plan (Plan.resumeLimit): Free 1, Starter 5, Pro
- * unlimited. To swap on a capped plan, delete an existing résumé first.
+ * Saved résumés — an uploaded file (stored in Cloudflare R2) or an external
+ * link. The number a user may keep is capped by their plan (Plan.resumeLimit):
+ * Free 1, Starter 5, Pro unlimited. To swap on a capped plan, delete first.
+ *
+ * The DB stores only the R2 object key for uploads (never a URL); downloads are
+ * served as short-lived presigned URLs.
  */
 @Injectable()
 export class ResumeService {
@@ -43,14 +44,15 @@ export class ResumeService {
     @InjectRepository(Subscription)
     private readonly subscriptions: Repository<Subscription>,
     @InjectRepository(Plan) private readonly plans: Repository<Plan>,
+    private readonly storage: R2StorageService,
   ) {}
 
-  async list(userId: string): Promise<ResumeView[]> {
-    const rows = await this.resumes.find({
-      where: { userId },
-      order: { createdAt: 'DESC' },
-    });
-    return rows.map((r) => this.toView(r));
+  async list(userId: string): Promise<ResumeListView> {
+    const [rows, limit] = await Promise.all([
+      this.resumes.find({ where: { userId }, order: { createdAt: 'DESC' } }),
+      this.resumeLimit(userId),
+    ]);
+    return { Items: rows.map((r) => this.toView(r)), Limit: limit };
   }
 
   async create(
@@ -68,21 +70,15 @@ export class ResumeService {
 
     await this.assertUnderLimit(userId);
 
-    let source: ResumeSource;
-    let fileUrl: string;
-    if (file) {
-      this.validateFile(file);
-      fileUrl = await this.store(file);
-      source = ResumeSource.UPLOAD;
-    } else {
-      fileUrl = dto.url!;
-      source = ResumeSource.LINK;
-    }
+    const row = file
+      ? await this.buildUpload(userId, file)
+      : this.resumes.create({
+          userId,
+          source: ResumeSource.LINK,
+          fileUrl: dto.url!,
+        });
 
-    const saved = await this.resumes.save(
-      this.resumes.create({ userId, source, fileUrl }),
-    );
-    return this.toView(saved);
+    return this.toView(await this.resumes.save(row));
   }
 
   async remove(userId: string, id: string): Promise<void> {
@@ -91,9 +87,42 @@ export class ResumeService {
 
     await this.resumes.remove(resume);
     if (resume.source === ResumeSource.UPLOAD) {
-      // Best-effort file cleanup; the row is already gone either way.
-      await unlink(join(UPLOADS_ROOT, resume.fileUrl)).catch(() => undefined);
+      // Best-effort object cleanup; the row is already gone either way.
+      await this.storage.delete(resume.fileUrl).catch(() => undefined);
     }
+  }
+
+  /** A URL the caller can download: presigned (uploads) or the link itself. */
+  async downloadUrl(userId: string, id: string): Promise<string> {
+    const resume = await this.resumes.findOne({ where: { id, userId } });
+    if (!resume) throw new NotFoundException('Résumé not found.');
+
+    if (resume.source === ResumeSource.LINK) return resume.fileUrl;
+    return this.storage.presignDownload(
+      resume.fileUrl,
+      resume.fileName,
+      resume.mimeType,
+    );
+  }
+
+  /** Validates + uploads the file to R2 and returns the unsaved entity. */
+  private async buildUpload(
+    userId: string,
+    file: UploadedResumeFile,
+  ): Promise<Resume> {
+    this.validateFile(file);
+    const key = `resumes/${userId}/${randomUUID()}${extname(
+      file.originalname,
+    ).toLowerCase()}`;
+    await this.storage.put(key, file.buffer, file.mimetype);
+    return this.resumes.create({
+      userId,
+      source: ResumeSource.UPLOAD,
+      fileUrl: key,
+      fileName: file.originalname,
+      mimeType: file.mimetype,
+      sizeBytes: file.size,
+    });
   }
 
   /** Free 1 / Starter 5 / Pro unlimited (-1) — enforced before create. */
@@ -130,19 +159,12 @@ export class ResumeService {
     }
   }
 
-  /** Writes the upload under uploads/resumes and returns its storage key. */
-  private async store(file: UploadedResumeFile): Promise<string> {
-    await mkdir(RESUME_DIR, { recursive: true });
-    const key = `${randomUUID()}${extname(file.originalname).toLowerCase()}`;
-    await writeFile(join(RESUME_DIR, key), file.buffer);
-    return `resumes/${key}`;
-  }
-
   private toView(r: Resume): ResumeView {
     return {
       Id: r.id,
       Source: r.source,
       Url: r.source === ResumeSource.LINK ? r.fileUrl : null,
+      Name: r.fileName,
       CreatedAt: r.createdAt.toISOString(),
     };
   }

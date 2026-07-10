@@ -52,6 +52,16 @@ export default () => ({
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? '',
   },
 
+  /** Cloudflare R2 (S3-compatible) — private bucket for résumé uploads. */
+  r2: {
+    accountId: process.env.R2_ACCOUNT_ID ?? '',
+    accessKeyId: process.env.R2_ACCESS_KEY_ID ?? '',
+    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY ?? '',
+    bucket: process.env.R2_BUCKET ?? '',
+    /** Presigned download-URL lifetime (seconds). */
+    presignExpiry: parseInt(process.env.R2_PRESIGN_EXPIRY ?? '900', 10),
+  },
+
   mail: {
     /** 'smtp' sends via Nodemailer. 'log' prints to console — no SMTP needed in dev. */
     driver: process.env.MAIL_DRIVER ?? 'smtp',

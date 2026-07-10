@@ -9,6 +9,7 @@ import { AuthGuard } from '@/shared/Guards/auth.guard';
 
 import { ResumeController } from '@/modules/resumes/controllers/resume.controller';
 import { ResumeService } from '@/modules/resumes/services/resume.service';
+import { R2StorageService } from '@/modules/resumes/services/r2-storage.service';
 
 /** Résumé storage — upload or link, capped per plan (Plan.resumeLimit). */
 @Module({
@@ -19,6 +20,6 @@ import { ResumeService } from '@/modules/resumes/services/resume.service';
     IdentityModule,
   ],
   controllers: [ResumeController],
-  providers: [ResumeService, AuthGuard],
+  providers: [ResumeService, R2StorageService, AuthGuard],
 })
 export class ResumesModule {}

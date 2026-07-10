@@ -9,10 +9,9 @@ import { EncryptionService } from '@/modules/identity/services/encryption.servic
 import { paginate, type PagedResult } from '@/shared/Common/paged-result';
 import type { RepoItem } from '@/modules/generations/dto/repo.dto';
 
-/** The full repo list is cached per user; pages are sliced from it in-memory. */
-const REPOS_TTL_MS = 120_000;
+const MAX_PAGES = 5;
 const PER_PAGE = 100;
-const MAX_PAGES = 5; // hard cap: 500 repos
+const REPOS_TTL_MS = 120_000;
 
 interface GithubRepo {
   id: number;
@@ -25,7 +24,6 @@ interface GithubRepo {
   updated_at: string;
   html_url: string;
 }
-
 
 @Injectable()
 export class GithubReposService {

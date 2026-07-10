@@ -22,6 +22,8 @@ import {
 import { ResumeService } from '@/modules/resumes/services/resume.service';
 import { CreateResumeDto } from '@/modules/resumes/dto/create-resume.dto';
 import type {
+  ResumeDownloadView,
+  ResumeListView,
   ResumeView,
   UploadedResumeFile,
 } from '@/modules/resumes/dto/resume.dto';
@@ -38,7 +40,7 @@ export class ResumeController extends BaseController {
   @Get()
   async list(
     @CurrentUser() user: AuthenticatedUser,
-  ): Promise<ApiResponse<ResumeView[]>> {
+  ): Promise<ApiResponse<ResumeListView>> {
     return this.ok(await this.resumes.list(user.userId));
   }
 
@@ -56,6 +58,16 @@ export class ResumeController extends BaseController {
       await this.resumes.create(user.userId, dto, file),
       'Résumé saved.',
     );
+  }
+
+  /** A short-lived presigned download URL (uploads) or the link's own URL. */
+  @Roles(UserRole.USER)
+  @Get(':id/download')
+  async download(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ApiResponse<ResumeDownloadView>> {
+    return this.ok({ Url: await this.resumes.downloadUrl(user.userId, id) });
   }
 
   @Roles(UserRole.USER)

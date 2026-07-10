@@ -23,9 +23,21 @@ export class Resume {
   @Column({ type: 'enum', enum: ResumeSource })
   source: ResumeSource;
 
-  /** Storage key (for uploads) or external URL (for links). */
+  /** R2 object key (for uploads) or external URL (for links). */
   @Column({ type: 'text', name: 'file_url' })
   fileUrl: string;
+
+  /** Original filename — uploads only (download name / display). */
+  @Column({ type: 'text', name: 'file_name', nullable: true })
+  fileName: string | null;
+
+  /** Content type — uploads only (download Content-Type). */
+  @Column({ type: 'text', name: 'mime_type', nullable: true })
+  mimeType: string | null;
+
+  /** File size in bytes — uploads only. */
+  @Column({ type: 'int', name: 'size_bytes', nullable: true })
+  sizeBytes: number | null;
 
   /** Raw text extracted for LLM context window. */
   @Column({ type: 'text', name: 'parsed_text', nullable: true })
