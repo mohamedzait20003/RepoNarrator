@@ -5,14 +5,13 @@ import { Repository } from 'typeorm';
 import { Generation } from '@/modules/generations/entities/generation.entity';
 import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
 import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
-
-const sleep = (ms: number): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms));
+import { NarrationContextService } from '../context/narration-context.service';
+import type { NarrationContext } from '../context/narration-context.types';
 
 /**
- * Phase 1 skeleton: walks a narration through its phases and writes a stub
- * README, proving the enqueue → worker → poll loop end-to-end. Phase 3 replaces
- * `produce()` with the LangGraph agent (résumé + repos → Gemini draft).
+ * Phase 2: gathers the real narration context (résumé + profile README + repos)
+ * and reports it in the output, proving the pipeline reads live data. Phase 3
+ * replaces `produce()` with the LangGraph + Gemini agent that consumes it.
  */
 @Injectable()
 export class NarrationRunner {
@@ -23,6 +22,7 @@ export class NarrationRunner {
     private readonly generations: Repository<Generation>,
     @InjectRepository(UsageCounter)
     private readonly usage: Repository<UsageCounter>,
+    private readonly context: NarrationContextService,
   ) {}
 
   async run(generationId: string): Promise<void> {
@@ -36,18 +36,21 @@ export class NarrationRunner {
 
     try {
       await this.advance(gen, 'gathering');
-      await sleep(400);
-      await this.advance(gen, 'analyzing');
-      await sleep(400);
-      await this.advance(gen, 'drafting');
-      await sleep(400);
+      const context = await this.context.gather(gen.userId);
 
-      gen.generatedMd = this.produce(gen);
+      await this.advance(gen, 'analyzing');
+      await this.advance(gen, 'drafting');
+
+      gen.generatedMd = this.produce(gen, context);
       gen.status = GenerationStatus.COMPLETED;
       gen.phase = 'completed';
       gen.completedAt = new Date();
       await this.generations.save(gen);
-      this.logger.log(`Narration ${gen.id} completed (stub).`);
+      this.logger.log(
+        `Narration ${gen.id} completed — ${context.repos.length} repos, résumé ${
+          context.resumeText ? 'yes' : 'no'
+        }.`,
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       gen.status = GenerationStatus.FAILED;
@@ -82,16 +85,34 @@ export class NarrationRunner {
     return `${date.getUTCFullYear()}-${month}-01`;
   }
 
-  private produce(gen: Generation): string {
+  private produce(gen: Generation, context: NarrationContext): string {
     const lines = [
       '# 👋 Profile README',
       '',
-      '_Placeholder from the Narrate Yourself pipeline — Phase 1 skeleton. The',
-      'agentic Gemini flow (résumé + repos → draft) lands in Phase 3._',
+      '_Placeholder from the Narrate Yourself pipeline — Phase 2. Context is now',
+      'gathered from your résumé + GitHub; the Gemini agent that writes from it',
+      'lands in Phase 3._',
       '',
     ];
     if (gen.intent) lines.push(`> Steering note: ${gen.intent}`, '');
     lines.push(
+      '## Context gathered',
+      `- GitHub: ${
+        context.githubConnected ? `@${context.githubLogin}` : 'not connected'
+      }`,
+      `- Résumé: ${context.resumeText ? 'parsed' : 'none'}`,
+      `- Profile README: ${context.profileReadme ? 'found' : 'none'}`,
+      `- Project repos read: ${context.repos.length}`,
+    );
+    for (const r of context.repos) {
+      lines.push(
+        `  - **${r.fullName}** (${r.language ?? 'n/a'}, ★${r.stars})${
+          r.readme ? ' — README ✓' : ''
+        }`,
+      );
+    }
+    lines.push(
+      '',
       `Generated ${new Date().toISOString()} using ${gen.model ?? 'the default model'}.`,
     );
     return lines.join('\n');

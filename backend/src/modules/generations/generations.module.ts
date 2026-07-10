@@ -31,9 +31,7 @@ import { NarrationQueue } from '@/modules/generations/queue/narration.queue';
       Plan,
       UsageCounter,
     ]),
-    // Per-user repo-list cache (2 min) — keeps us under GitHub's rate limit.
     CacheModule.register({ ttl: 120_000 }),
-    // Provides TOKEN_SERVICE (AuthGuard) + EncryptionService (token decrypt).
     IdentityModule,
   ],
   controllers: [ReposController, NarrationController],
