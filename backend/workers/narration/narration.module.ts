@@ -13,6 +13,8 @@ import { R2StorageService } from '@/modules/resumes/services/r2-storage.service'
 import { ResumeTextService } from './context/resume-text.service';
 import { GithubReaderService } from './context/github-reader.service';
 import { NarrationContextService } from './context/narration-context.service';
+import { LlmProviderFactory } from './agent/llm-provider.factory';
+import { NarrationAgentService } from './agent/narration-agent.service';
 import { NarrationRunner } from './services/narration-runner.service';
 
 @Module({
@@ -37,6 +39,8 @@ import { NarrationRunner } from './services/narration-runner.service';
     ResumeTextService,
     R2StorageService,
     EncryptionService,
+    LlmProviderFactory,
+    NarrationAgentService,
   ],
   exports: [NarrationRunner],
 })

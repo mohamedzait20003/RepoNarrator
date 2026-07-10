@@ -6,12 +6,12 @@ import { Generation } from '@/modules/generations/entities/generation.entity';
 import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
 import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
 import { NarrationContextService } from '../context/narration-context.service';
-import type { NarrationContext } from '../context/narration-context.types';
+import { NarrationAgentService } from '../agent/narration-agent.service';
 
 /**
- * Phase 2: gathers the real narration context (résumé + profile README + repos)
- * and reports it in the output, proving the pipeline reads live data. Phase 3
- * replaces `produce()` with the LangGraph + Gemini agent that consumes it.
+ * Runs a "Narrate Yourself" job: gathers the user's context (résumé + profile
+ * README + repos), then hands it to the LangGraph + Gemini agent to write the
+ * profile README. Progress is streamed to the `phase` column for polling.
  */
 @Injectable()
 export class NarrationRunner {
@@ -23,6 +23,7 @@ export class NarrationRunner {
     @InjectRepository(UsageCounter)
     private readonly usage: Repository<UsageCounter>,
     private readonly context: NarrationContextService,
+    private readonly agent: NarrationAgentService,
   ) {}
 
   async run(generationId: string): Promise<void> {
@@ -38,18 +39,33 @@ export class NarrationRunner {
       await this.advance(gen, 'gathering');
       const context = await this.context.gather(gen.userId);
 
-      await this.advance(gen, 'analyzing');
-      await this.advance(gen, 'drafting');
+      const provider = gen.provider;
+      const modelId = gen.model;
+      if (!provider || !modelId) {
+        throw new Error('Narration has no model assigned.');
+      }
 
-      gen.generatedMd = this.produce(gen, context);
+      const result = await this.agent.run({
+        context,
+        intent: gen.intent,
+        provider,
+        modelId,
+        onPhase: (phase) => this.advance(gen, phase),
+      });
+
+      if (!result.markdown) {
+        throw new Error('The model returned an empty README.');
+      }
+
+      gen.generatedMd = result.markdown;
+      gen.inputTokens = result.inputTokens;
+      gen.outputTokens = result.outputTokens;
       gen.status = GenerationStatus.COMPLETED;
       gen.phase = 'completed';
       gen.completedAt = new Date();
       await this.generations.save(gen);
       this.logger.log(
-        `Narration ${gen.id} completed — ${context.repos.length} repos, résumé ${
-          context.resumeText ? 'yes' : 'no'
-        }.`,
+        `Narration ${gen.id} completed — ${context.repos.length} repos, ${result.outputTokens} output tokens.`,
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
@@ -83,38 +99,5 @@ export class NarrationRunner {
   private periodOf(date: Date): string {
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     return `${date.getUTCFullYear()}-${month}-01`;
-  }
-
-  private produce(gen: Generation, context: NarrationContext): string {
-    const lines = [
-      '# 👋 Profile README',
-      '',
-      '_Placeholder from the Narrate Yourself pipeline — Phase 2. Context is now',
-      'gathered from your résumé + GitHub; the Gemini agent that writes from it',
-      'lands in Phase 3._',
-      '',
-    ];
-    if (gen.intent) lines.push(`> Steering note: ${gen.intent}`, '');
-    lines.push(
-      '## Context gathered',
-      `- GitHub: ${
-        context.githubConnected ? `@${context.githubLogin}` : 'not connected'
-      }`,
-      `- Résumé: ${context.resumeText ? 'parsed' : 'none'}`,
-      `- Profile README: ${context.profileReadme ? 'found' : 'none'}`,
-      `- Project repos read: ${context.repos.length}`,
-    );
-    for (const r of context.repos) {
-      lines.push(
-        `  - **${r.fullName}** (${r.language ?? 'n/a'}, ★${r.stars})${
-          r.readme ? ' — README ✓' : ''
-        }`,
-      );
-    }
-    lines.push(
-      '',
-      `Generated ${new Date().toISOString()} using ${gen.model ?? 'the default model'}.`,
-    );
-    return lines.join('\n');
   }
 }
