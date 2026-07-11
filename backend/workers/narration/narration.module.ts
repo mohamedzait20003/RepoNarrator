@@ -10,11 +10,11 @@ import { User } from '@/modules/identity/entities/user.entity';
 import { Resume } from '@/modules/resumes/entities/resume.entity';
 import { EncryptionService } from '@/modules/identity/services/encryption.service';
 import { R2StorageService } from '@/modules/resumes/services/r2-storage.service';
-import { ResumeTextService } from './context/resume-text.service';
-import { GithubReaderService } from './context/github-reader.service';
-import { NarrationContextService } from './context/narration-context.service';
-import { LlmProviderFactory } from './agent/llm-provider.factory';
-import { NarrationAgentService } from './agent/narration-agent.service';
+import { ResumeTextService } from './services/resume-text.service';
+import { GithubReaderService } from './services/github-reader.service';
+import { NarrationContextService } from './services/narration-context.service';
+import { LlmProviderFactory } from '@/shared/Factories/llm-provider.factory';
+import { NarrationAgentService } from './services/narration-agent.service';
 import { NarrationRunner } from './services/narration-runner.service';
 
 @Module({

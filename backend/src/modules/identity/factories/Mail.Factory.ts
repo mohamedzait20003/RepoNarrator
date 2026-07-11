@@ -1,12 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { BaseMailFactory } from '@/shared/Factories/base-mail.factory';
+import { BaseQueueFactory } from '@/shared/Factories/base-queue.factory';
 
+/** Serialised payload enqueued by MailFactory and consumed by the mail worker. */
+export interface EmailJobPayload {
+  to: { email: string; name: string };
+  subject: string;
+  view: string;
+  data: Record<string, unknown>;
+}
+
+/** Enqueues transactional emails onto the shared mail queue. */
 @Injectable()
-export class MailFactory extends BaseMailFactory {
+export class MailFactory extends BaseQueueFactory<EmailJobPayload> {
   constructor(config: ConfigService) {
-    super(config);
+    super(config, 'email', 'mail.send');
   }
 
   async sendVerification(

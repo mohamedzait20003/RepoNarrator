@@ -11,13 +11,13 @@ import { Generation } from '@/modules/generations/entities/generation.entity';
 import { AiModel } from '@/modules/subscription/entities/ai-model.entity';
 import { Subscription } from '@/modules/subscription/entities/subscription.entity';
 import { Plan } from '@/modules/subscription/entities/plan.entity';
-import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
 import { GenerationKind } from '@/shared/Domain/enums/generation-kind.enum';
 import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
 import { PushMode } from '@/shared/Domain/enums/push-mode.enum';
 import { ModelTier } from '@/shared/Domain/enums/model-tier.enum';
 import { PlanTier } from '@/shared/Domain/enums/plan-tier.enum';
-import { NarrationQueue } from '@/modules/generations/queue/narration.queue';
+import { NarrationQuotaService } from '@/modules/generations/services/narration-quota.service';
+import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
 import type { StartNarrationDto } from '@/modules/generations/dto/start-narration.dto';
 import type {
   NarrationStartView,
@@ -32,22 +32,21 @@ const TIER_RANK: Record<ModelTier, number> = {
 };
 
 /**
- * "Narrate Yourself" orchestration (Phase 1: enqueue + status). Enforces the
- * per-plan profile-narration quota, resolves the AI model from the catalog
- * (user pick → plan default, tier-gated), records the run, and queues the job.
+ * "Narrate Yourself" job lifecycle. Resolves the user's plan + model (catalog,
+ * tier-gated), delegates quota to {@link NarrationQuotaService}, records the run
+ * and enqueues it via {@link NarrationFactory}; also reports status for polling.
  */
 @Injectable()
 export class NarrationService {
   constructor(
     @InjectRepository(Generation)
     private readonly generations: Repository<Generation>,
-    @InjectRepository(AiModel) private readonly aiModels: Repository<AiModel>,
     @InjectRepository(Subscription)
     private readonly subscriptions: Repository<Subscription>,
     @InjectRepository(Plan) private readonly plans: Repository<Plan>,
-    @InjectRepository(UsageCounter)
-    private readonly usage: Repository<UsageCounter>,
-    private readonly queue: NarrationQueue,
+    @InjectRepository(AiModel) private readonly aiModels: Repository<AiModel>,
+    private readonly quota: NarrationQuotaService,
+    private readonly narrations: NarrationFactory,
   ) {}
 
   async start(
@@ -55,7 +54,7 @@ export class NarrationService {
     dto: StartNarrationDto,
   ): Promise<NarrationStartView> {
     const plan = await this.loadPlan(userId);
-    await this.reserveQuota(userId, plan);
+    await this.quota.reserve(userId, plan);
     const model = await this.resolveModel(plan, dto.modelId);
 
     const generation = await this.generations.save(
@@ -72,7 +71,7 @@ export class NarrationService {
       }),
     );
 
-    await this.queue.enqueue({ generationId: generation.id });
+    await this.narrations.queue(generation.id);
     return { Id: generation.id };
   }
 
@@ -104,37 +103,6 @@ export class NarrationService {
     return plan;
   }
 
-  /** Reserve one profile-narration against the plan cap for the current period. */
-  private async reserveQuota(userId: string, plan: Plan): Promise<void> {
-    const limit = plan.features.profileNarrations; // -1 = unlimited, 0 = none
-    if (limit === 0) {
-      throw new ForbiddenException(
-        'Your plan does not include Narrate Yourself.',
-      );
-    }
-
-    const periodStart = this.currentPeriodStart();
-    const row =
-      (await this.usage.findOne({ where: { userId, periodStart } })) ??
-      this.usage.create({
-        userId,
-        periodStart,
-        generationsUsed: 0,
-        profileNarrationsUsed: 0,
-      });
-
-    if (limit !== -1 && row.profileNarrationsUsed >= limit) {
-      throw new ForbiddenException(
-        `You've used all ${limit} Narrate Yourself run${
-          limit === 1 ? '' : 's'
-        } for this period.`,
-      );
-    }
-
-    row.profileNarrationsUsed += 1;
-    await this.usage.save(row);
-  }
-
   /** Selected model (tier-checked) or the plan's default from the catalog. */
   private async resolveModel(plan: Plan, modelId?: string): Promise<AiModel> {
     const rank = TIER_RANK[plan.modelTier];
@@ -159,12 +127,5 @@ export class NarrationService {
     }
 
     return allowed.find((m) => m.isDefault) ?? allowed[0];
-  }
-
-  /** First day of the current UTC month, as the usage period key (YYYY-MM-01). */
-  private currentPeriodStart(): string {
-    const now = new Date();
-    const month = String(now.getUTCMonth() + 1).padStart(2, '0');
-    return `${now.getUTCFullYear()}-${month}-01`;
   }
 }

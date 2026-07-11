@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { User } from '@/modules/identity/entities/user.entity';
 import { EncryptionService } from '@/modules/identity/services/encryption.service';
-import type { RepoContext } from './narration-context.types';
+import type { RepoContext } from '../context/narration-context';
 
 const GH = 'https://api.github.com';
 const MAX_REPOS = 6;

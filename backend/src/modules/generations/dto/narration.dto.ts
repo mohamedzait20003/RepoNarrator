@@ -5,6 +5,11 @@ export interface NarrationStartView {
   Id: string;
 }
 
+/** POST /narrations/tailor result — the refined steering instruction. */
+export interface TailorView {
+  Text: string;
+}
+
 /** GET /narrations/:id — polled by the workspace until Status is terminal. */
 export interface NarrationView {
   Id: string;

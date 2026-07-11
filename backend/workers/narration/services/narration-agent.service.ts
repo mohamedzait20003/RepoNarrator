@@ -8,7 +8,7 @@ import {
 } from '@langchain/core/messages';
 
 import { LlmProvider } from '@/shared/Domain/enums/llm-provider.enum';
-import { LlmProviderFactory } from './llm-provider.factory';
+import { LlmProviderFactory } from '@/shared/Factories/llm-provider.factory';
 import {
   ANALYZE_SYSTEM,
   CRITIQUE_SYSTEM,
@@ -16,8 +16,8 @@ import {
   analyzeHuman,
   critiqueHuman,
   draftHuman,
-} from './prompts';
-import type { NarrationContext } from '../context/narration-context.types';
+} from '../context/prompts';
+import type { NarrationContext } from '../context/narration-context';
 
 /** Max draft passes (initial + revisions) before we ship what we have. */
 const MAX_REVISIONS = 2;

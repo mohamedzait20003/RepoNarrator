@@ -9,7 +9,11 @@ import { Button } from "@/common/components/ui/button";
 import { Textarea } from "@/common/components/ui/textarea";
 import { useStore } from "@/store";
 import { useAccountName } from "@/lib/auth/account";
-import { useNarration, useStartNarration } from "@/lib/hooks/useNarration";
+import {
+  useNarration,
+  useStartNarration,
+  useTailorIntent,
+} from "@/lib/hooks/useNarration";
 import { PhaseProgress } from "@/modules/client/sections/narrate/PhaseProgress";
 import { ReadmeEditor } from "@/modules/client/sections/narrate/ReadmeEditor";
 
@@ -21,6 +25,7 @@ export default function Narrate() {
   const [draft, setDraft] = useState<string | null>(null);
 
   const start = useStartNarration();
+  const tailor = useTailorIntent();
   const { data: narration } = useNarration(jobId);
 
   const status = narration?.Status;
@@ -42,6 +47,16 @@ export default function Narrate() {
   const onStartOver = () => {
     setJobId(null);
     setDraft(null);
+  };
+
+  const onTailor = () => {
+    const rough = intent.trim();
+    if (!rough) return;
+    tailor.mutate(rough, {
+      onSuccess: (res) => {
+        if (res.Data?.Text) setIntent(res.Data.Text);
+      },
+    });
   };
 
   if (!linked) {
@@ -107,11 +122,12 @@ export default function Narrate() {
                 variant="outline"
                 size="sm"
                 className="gap-1.5"
-                disabled
-                title="AI tailoring is enabled in the next step"
+                onClick={onTailor}
+                disabled={!intent.trim() || tailor.isPending}
+                title="Sharpen your note with AI"
               >
                 <Wand2 className="h-4 w-4" />
-                Tailor with AI
+                {tailor.isPending ? "Tailoring…" : "Tailor with AI"}
               </Button>
               <Button
                 onClick={onStart}
@@ -122,8 +138,10 @@ export default function Narrate() {
                 {start.isPending ? "Starting…" : "Start"}
               </Button>
             </div>
-            {start.error && (
-              <p className="text-sm text-destructive">{start.error.message}</p>
+            {(start.error ?? tailor.error) && (
+              <p className="text-sm text-destructive">
+                {(start.error ?? tailor.error)?.message}
+              </p>
             )}
           </CardContent>
         </Card>

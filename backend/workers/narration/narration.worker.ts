@@ -6,7 +6,7 @@ import { Redis } from 'ioredis';
 import {
   NARRATION_QUEUE,
   type NarrationJob,
-} from '@/modules/generations/queue/narration.queue';
+} from '@/modules/generations/factories/narration.factory';
 import { NarrationWorkerModule } from './narration.module';
 import { NarrationRunner } from './services/narration-runner.service';
 

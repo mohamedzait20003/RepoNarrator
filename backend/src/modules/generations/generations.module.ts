@@ -10,12 +10,15 @@ import { Plan } from '@/modules/subscription/entities/plan.entity';
 import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
 import { IdentityModule } from '@/modules/identity/identity.module';
 import { AuthGuard } from '@/shared/Guards/auth.guard';
+import { LlmProviderFactory } from '@/shared/Factories/llm-provider.factory';
 
 import { ReposController } from '@/modules/generations/controllers/repos.controller';
 import { GithubReposService } from '@/modules/generations/services/github-repos.service';
 import { NarrationController } from '@/modules/generations/controllers/narration.controller';
 import { NarrationService } from '@/modules/generations/services/narration.service';
-import { NarrationQueue } from '@/modules/generations/queue/narration.queue';
+import { NarrationQuotaService } from '@/modules/generations/services/narration-quota.service';
+import { NarrationTailorService } from '@/modules/generations/services/narration-tailor.service';
+import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
 
 /**
  * Generation module — repo listing + "Narrate Yourself" (profile README). The
@@ -35,6 +38,14 @@ import { NarrationQueue } from '@/modules/generations/queue/narration.queue';
     IdentityModule,
   ],
   controllers: [ReposController, NarrationController],
-  providers: [GithubReposService, NarrationService, NarrationQueue, AuthGuard],
+  providers: [
+    GithubReposService,
+    NarrationService,
+    NarrationQuotaService,
+    NarrationTailorService,
+    NarrationFactory,
+    LlmProviderFactory,
+    AuthGuard,
+  ],
 })
 export class GenerationsModule {}

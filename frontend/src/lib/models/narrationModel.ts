@@ -18,5 +18,11 @@ export interface NarrationStart {
   Id: string;
 }
 
+/** POST /narrations/tailor — the sharpened steering instruction. */
+export interface Tailor {
+  Text: string;
+}
+
 export type NarrationResponse = ApiResponse<Narration>;
 export type NarrationStartResponse = ApiResponse<NarrationStart>;
+export type TailorResponse = ApiResponse<Tailor>;

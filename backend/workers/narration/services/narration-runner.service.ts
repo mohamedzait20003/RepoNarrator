@@ -5,8 +5,8 @@ import { Repository } from 'typeorm';
 import { Generation } from '@/modules/generations/entities/generation.entity';
 import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
 import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
-import { NarrationContextService } from '../context/narration-context.service';
-import { NarrationAgentService } from '../agent/narration-agent.service';
+import { NarrationContextService } from './narration-context.service';
+import { NarrationAgentService } from './narration-agent.service';
 
 /**
  * Runs a "Narrate Yourself" job: gathers the user's context (résumé + profile

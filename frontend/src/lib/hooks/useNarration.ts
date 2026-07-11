@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getNarration,
   startNarration,
+  tailorIntent,
 } from "@/lib/handlers/narrationHandlers";
 
 /** Polls a narration until it reaches a terminal state (completed / failed). */
@@ -28,4 +29,8 @@ export function useStartNarration() {
       void qc.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
+}
+
+export function useTailorIntent() {
+  return useMutation({ mutationFn: (draft: string) => tailorIntent(draft) });
 }

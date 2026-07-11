@@ -1,4 +1,4 @@
-import type { NarrationContext } from '../context/narration-context.types';
+import type { NarrationContext } from './narration-context';
 
 /** Truncate a repo README when packing it into a synthesis prompt. */
 const REPO_README_IN_PROMPT = 1_500;

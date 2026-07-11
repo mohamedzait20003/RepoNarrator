@@ -2,6 +2,7 @@ import { baseApi } from "../api/baseApi";
 import type {
   NarrationResponse,
   NarrationStartResponse,
+  TailorResponse,
 } from "../models/narrationModel";
 
 /** Start a "Narrate Yourself" job. Model defaults to the plan's; intent steers it. */
@@ -16,5 +17,13 @@ export async function startNarration(
 
 export async function getNarration(id: string): Promise<NarrationResponse> {
   const res = await baseApi.get<NarrationResponse>(`/narrations/${id}`);
+  return res.data;
+}
+
+/** Sharpen a rough intent note with a cheap model (synchronous). */
+export async function tailorIntent(draft: string): Promise<TailorResponse> {
+  const res = await baseApi.post<TailorResponse>("/narrations/tailor", {
+    draft,
+  });
   return res.data;
 }

@@ -6,7 +6,7 @@ import { User } from '@/modules/identity/entities/user.entity';
 import { Resume } from '@/modules/resumes/entities/resume.entity';
 import { ResumeTextService } from './resume-text.service';
 import { GithubReaderService } from './github-reader.service';
-import type { NarrationContext } from './narration-context.types';
+import type { NarrationContext } from '../context/narration-context';
 
 /**
  * Assembles everything the "Narrate Yourself" agent reads: the user's latest
