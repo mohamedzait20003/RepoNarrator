@@ -1,6 +1,13 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Eye, GitCommitHorizontal, Pencil, RefreshCw } from "lucide-react";
+import {
+  Check,
+  ExternalLink,
+  Eye,
+  GitCommitHorizontal,
+  Pencil,
+  RefreshCw,
+} from "lucide-react";
 
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
@@ -15,11 +22,19 @@ export function ReadmeEditor({
   onChange,
   model,
   onStartOver,
+  onCommit,
+  committing,
+  committedUrl,
+  commitError,
 }: {
   value: string;
   onChange: (v: string) => void;
   model: string | null;
   onStartOver: () => void;
+  onCommit: () => void;
+  committing: boolean;
+  committedUrl: string | null;
+  commitError: string | null;
 }) {
   return (
     <Card className="gap-0 py-0">
@@ -67,16 +82,37 @@ export function ReadmeEditor({
       </div>
 
       <div className="flex flex-col items-start justify-between gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center">
-        <p className="text-xs text-muted-foreground">
-          Edit the Markdown, then commit it straight to your profile repo.
-        </p>
+        <div className="min-w-0">
+          {committedUrl ? (
+            <a
+              href={committedUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 hover:underline"
+            >
+              <Check className="h-4 w-4" />
+              Committed — view on GitHub
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : commitError ? (
+            <p className="text-xs text-destructive">{commitError}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Edit the Markdown, then commit it straight to your profile repo.
+            </p>
+          )}
+        </div>
         <Button
-          disabled
-          title="Direct-push commit is enabled in the final step"
+          onClick={onCommit}
+          disabled={committing || !value.trim()}
           className="gap-1.5 bg-violet-600 text-white hover:bg-violet-700"
         >
           <GitCommitHorizontal className="h-4 w-4" />
-          Commit to profile (soon)
+          {committing
+            ? "Committing…"
+            : committedUrl
+              ? "Commit again"
+              : "Commit to profile"}
         </Button>
       </div>
     </Card>

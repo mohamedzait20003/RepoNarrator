@@ -62,7 +62,8 @@ export class GithubController extends BaseController {
     const params = new URLSearchParams({
       client_id: this.clientId,
       redirect_uri: this.callbackUrl,
-      scope: 'read:user user:email',
+      // public_repo: create/update the public profile repo (owner/owner) on commit.
+      scope: 'read:user user:email public_repo',
       state,
     });
     res.redirect(

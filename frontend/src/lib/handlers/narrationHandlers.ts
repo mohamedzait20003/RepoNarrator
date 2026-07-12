@@ -1,5 +1,6 @@
 import { baseApi } from "../api/baseApi";
 import type {
+  CommitResponse,
   NarrationResponse,
   NarrationStartResponse,
   TailorResponse,
@@ -24,6 +25,17 @@ export async function getNarration(id: string): Promise<NarrationResponse> {
 export async function tailorIntent(draft: string): Promise<TailorResponse> {
   const res = await baseApi.post<TailorResponse>("/narrations/tailor", {
     draft,
+  });
+  return res.data;
+}
+
+/** Push the edited README straight to the user's profile repo. */
+export async function commitNarration(
+  id: string,
+  content: string,
+): Promise<CommitResponse> {
+  const res = await baseApi.post<CommitResponse>(`/narrations/${id}/commit`, {
+    content,
   });
   return res.data;
 }

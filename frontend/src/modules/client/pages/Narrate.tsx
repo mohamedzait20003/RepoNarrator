@@ -10,6 +10,7 @@ import { Textarea } from "@/common/components/ui/textarea";
 import { useStore } from "@/store";
 import { useAccountName } from "@/lib/auth/account";
 import {
+  useCommitNarration,
   useNarration,
   useStartNarration,
   useTailorIntent,
@@ -23,9 +24,11 @@ export default function Narrate() {
   const [intent, setIntent] = useState("");
   const [jobId, setJobId] = useState<string | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
+  const [committedUrl, setCommittedUrl] = useState<string | null>(null);
 
   const start = useStartNarration();
   const tailor = useTailorIntent();
+  const commit = useCommitNarration();
   const { data: narration } = useNarration(jobId);
 
   const status = narration?.Status;
@@ -47,6 +50,17 @@ export default function Narrate() {
   const onStartOver = () => {
     setJobId(null);
     setDraft(null);
+    setCommittedUrl(null);
+  };
+
+  const onCommit = () => {
+    if (!jobId) return;
+    const content = draft ?? narration?.GeneratedMd ?? "";
+    if (!content.trim()) return;
+    commit.mutate(
+      { id: jobId, content },
+      { onSuccess: (res) => setCommittedUrl(res.Data?.HtmlUrl ?? null) },
+    );
   };
 
   const onTailor = () => {
@@ -170,9 +184,16 @@ export default function Narrate() {
       {completed && (
         <ReadmeEditor
           value={draft ?? narration?.GeneratedMd ?? ""}
-          onChange={setDraft}
+          onChange={(v) => {
+            setDraft(v);
+            setCommittedUrl(null);
+          }}
           model={narration?.Model ?? null}
           onStartOver={onStartOver}
+          onCommit={onCommit}
+          committing={commit.isPending}
+          committedUrl={committedUrl}
+          commitError={commit.error?.message ?? null}
         />
       )}
     </div>

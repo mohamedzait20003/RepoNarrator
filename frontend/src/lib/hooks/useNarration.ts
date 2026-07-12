@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  commitNarration,
   getNarration,
   startNarration,
   tailorIntent,
@@ -33,4 +34,11 @@ export function useStartNarration() {
 
 export function useTailorIntent() {
   return useMutation({ mutationFn: (draft: string) => tailorIntent(draft) });
+}
+
+export function useCommitNarration() {
+  return useMutation({
+    mutationFn: ({ id, content }: { id: string; content: string }) =>
+      commitNarration(id, content),
+  });
 }

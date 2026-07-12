@@ -18,6 +18,7 @@ import { NarrationController } from '@/modules/generations/controllers/narration
 import { NarrationService } from '@/modules/generations/services/narration.service';
 import { NarrationQuotaService } from '@/modules/generations/services/narration-quota.service';
 import { NarrationTailorService } from '@/modules/generations/services/narration-tailor.service';
+import { GithubCommitService } from '@/modules/generations/services/github-commit.service';
 import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
 
 /**
@@ -43,6 +44,7 @@ import { NarrationFactory } from '@/modules/generations/factories/narration.fact
     NarrationService,
     NarrationQuotaService,
     NarrationTailorService,
+    GithubCommitService,
     NarrationFactory,
     LlmProviderFactory,
     AuthGuard,

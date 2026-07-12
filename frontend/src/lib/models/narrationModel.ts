@@ -23,6 +23,13 @@ export interface Tailor {
   Text: string;
 }
 
+/** POST /narrations/:id/commit — the pushed commit. */
+export interface Commit {
+  CommitSha: string;
+  HtmlUrl: string;
+}
+
 export type NarrationResponse = ApiResponse<Narration>;
 export type NarrationStartResponse = ApiResponse<NarrationStart>;
 export type TailorResponse = ApiResponse<Tailor>;
+export type CommitResponse = ApiResponse<Commit>;

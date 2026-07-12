@@ -10,6 +10,12 @@ export interface TailorView {
   Text: string;
 }
 
+/** POST /narrations/:id/commit result — the pushed commit. */
+export interface CommitView {
+  CommitSha: string;
+  HtmlUrl: string;
+}
+
 /** GET /narrations/:id — polled by the workspace until Status is terminal. */
 export interface NarrationView {
   Id: string;

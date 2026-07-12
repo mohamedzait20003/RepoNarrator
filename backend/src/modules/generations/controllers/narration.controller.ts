@@ -19,7 +19,9 @@ import { NarrationService } from '@/modules/generations/services/narration.servi
 import { NarrationTailorService } from '@/modules/generations/services/narration-tailor.service';
 import { StartNarrationDto } from '@/modules/generations/dto/start-narration.dto';
 import { TailorNarrationDto } from '@/modules/generations/dto/tailor-narration.dto';
+import { CommitNarrationDto } from '@/modules/generations/dto/commit-narration.dto';
 import type {
+  CommitView,
   NarrationStartView,
   NarrationView,
   TailorView,
@@ -63,5 +65,19 @@ export class NarrationController extends BaseController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<ApiResponse<NarrationView>> {
     return this.ok(await this.narration.status(user.userId, id));
+  }
+
+  /** Push the edited README straight to the user's profile repo (owner/owner). */
+  @Roles(UserRole.USER)
+  @Post(':id/commit')
+  async commit(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CommitNarrationDto,
+  ): Promise<ApiResponse<CommitView>> {
+    return this.ok(
+      await this.narration.commit(user.userId, id, dto.content),
+      'Committed to your profile.',
+    );
   }
 }

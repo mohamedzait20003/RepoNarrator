@@ -17,9 +17,11 @@ import { PushMode } from '@/shared/Domain/enums/push-mode.enum';
 import { ModelTier } from '@/shared/Domain/enums/model-tier.enum';
 import { PlanTier } from '@/shared/Domain/enums/plan-tier.enum';
 import { NarrationQuotaService } from '@/modules/generations/services/narration-quota.service';
+import { GithubCommitService } from '@/modules/generations/services/github-commit.service';
 import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
 import type { StartNarrationDto } from '@/modules/generations/dto/start-narration.dto';
 import type {
+  CommitView,
   NarrationStartView,
   NarrationView,
 } from '@/modules/generations/dto/narration.dto';
@@ -47,6 +49,7 @@ export class NarrationService {
     @InjectRepository(AiModel) private readonly aiModels: Repository<AiModel>,
     private readonly quota: NarrationQuotaService,
     private readonly narrations: NarrationFactory,
+    private readonly github: GithubCommitService,
   ) {}
 
   async start(
@@ -90,6 +93,30 @@ export class NarrationService {
       Error: gen.error,
       CreatedAt: gen.createdAt.toISOString(),
     };
+  }
+
+  /** Push the (edited) README straight to the user's profile repo default branch. */
+  async commit(
+    userId: string,
+    id: string,
+    content: string,
+  ): Promise<CommitView> {
+    const gen = await this.generations.findOne({
+      where: { id, userId, kind: GenerationKind.PROFILE },
+    });
+    if (!gen) throw new NotFoundException('Narration not found.');
+    if (gen.status !== GenerationStatus.COMPLETED) {
+      throw new BadRequestException('This narration is not ready to commit.');
+    }
+
+    const result = await this.github.commitProfileReadme(userId, content);
+
+    gen.generatedMd = content; // persist the committed version
+    gen.commitSha = result.commitSha;
+    gen.pushMode = PushMode.DIRECT;
+    await this.generations.save(gen);
+
+    return { CommitSha: result.commitSha, HtmlUrl: result.htmlUrl };
   }
 
   private async loadPlan(userId: string): Promise<Plan> {
