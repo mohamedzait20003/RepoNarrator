@@ -9,9 +9,11 @@ import type {
 /** Start a "Narrate Yourself" job. Model defaults to the plan's; intent steers it. */
 export async function startNarration(
   intent?: string,
+  modelId?: string,
 ): Promise<NarrationStartResponse> {
   const res = await baseApi.post<NarrationStartResponse>("/narrations", {
     intent: intent?.trim() || undefined,
+    modelId: modelId || undefined,
   });
   return res.data;
 }

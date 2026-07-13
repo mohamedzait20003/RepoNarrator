@@ -8,8 +8,10 @@ import {
 } from '@nestjs/common';
 
 import { Roles } from '@/shared/Decorators/auth-role.decorator';
+import { Quota } from '@/shared/Decorators/quota.decorator';
 import { CurrentUser } from '@/shared/Decorators/current-user.decorator';
 import { UserRole } from '@/shared/Domain/enums/user-role.enum';
+import { QuotaKind } from '@/shared/Domain/enums/quota-kind.enum';
 import type { AuthenticatedUser } from '@/shared/Contracts/authenticated-user.contract';
 import {
   BaseController,
@@ -27,7 +29,6 @@ import type {
   TailorView,
 } from '@/modules/generations/dto/narration.dto';
 
-/** "Narrate Yourself" — start a profile-README job and poll its status. */
 @Controller('narrations')
 export class NarrationController extends BaseController {
   constructor(
@@ -37,6 +38,7 @@ export class NarrationController extends BaseController {
     super();
   }
 
+  @Quota(QuotaKind.PROFILE_NARRATION)
   @Roles(UserRole.USER)
   @Post()
   async start(
@@ -49,7 +51,6 @@ export class NarrationController extends BaseController {
     );
   }
 
-  /** Sharpen a rough intent note into a better instruction (synchronous, cheap). */
   @Roles(UserRole.USER)
   @Post('tailor')
   async tailor(
@@ -67,7 +68,6 @@ export class NarrationController extends BaseController {
     return this.ok(await this.narration.status(user.userId, id));
   }
 
-  /** Push the edited README straight to the user's profile repo (owner/owner). */
   @Roles(UserRole.USER)
   @Post(':id/commit')
   async commit(

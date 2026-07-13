@@ -66,7 +66,7 @@ export function ReadmeEditor({
             value={value}
             spellCheck={false}
             onChange={(e) => onChange(e.target.value)}
-            className="min-h-[28rem] rounded-none border-0 bg-transparent font-mono text-xs leading-relaxed focus-visible:ring-0"
+            className="min-h-112 rounded-none border-0 bg-transparent font-mono text-xs leading-relaxed focus-visible:ring-0"
           />
         </div>
 
@@ -75,7 +75,7 @@ export function ReadmeEditor({
             <Eye className="h-3.5 w-3.5" />
             Preview
           </div>
-          <div className={`min-h-[28rem] overflow-x-auto px-5 py-4 ${PREVIEW_PROSE}`}>
+          <div className={`min-h-112 overflow-x-auto px-5 py-4 ${PREVIEW_PROSE}`}>
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
           </div>
         </div>

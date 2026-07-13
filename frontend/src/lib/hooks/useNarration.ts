@@ -24,7 +24,8 @@ export function useNarration(id: string | null) {
 export function useStartNarration() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (intent?: string) => startNarration(intent),
+    mutationFn: (vars: { intent?: string; modelId?: string }) =>
+      startNarration(vars.intent, vars.modelId),
     onSuccess: () => {
       // Usage (profile-narration quota) may have changed.
       void qc.invalidateQueries({ queryKey: ["dashboard"] });

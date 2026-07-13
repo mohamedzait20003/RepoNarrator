@@ -9,14 +9,12 @@ import { Repository } from 'typeorm';
 
 import { Generation } from '@/modules/generations/entities/generation.entity';
 import { AiModel } from '@/modules/subscription/entities/ai-model.entity';
-import { Subscription } from '@/modules/subscription/entities/subscription.entity';
 import { Plan } from '@/modules/subscription/entities/plan.entity';
+import { PlanService } from '@/modules/subscription/services/plan.service';
 import { GenerationKind } from '@/shared/Domain/enums/generation-kind.enum';
 import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
 import { PushMode } from '@/shared/Domain/enums/push-mode.enum';
 import { ModelTier } from '@/shared/Domain/enums/model-tier.enum';
-import { PlanTier } from '@/shared/Domain/enums/plan-tier.enum';
-import { NarrationQuotaService } from '@/modules/generations/services/narration-quota.service';
 import { GithubCommitService } from '@/modules/generations/services/github-commit.service';
 import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
 import type { StartNarrationDto } from '@/modules/generations/dto/start-narration.dto';
@@ -35,19 +33,17 @@ const TIER_RANK: Record<ModelTier, number> = {
 
 /**
  * "Narrate Yourself" job lifecycle. Resolves the user's plan + model (catalog,
- * tier-gated), delegates quota to {@link NarrationQuotaService}, records the run
- * and enqueues it via {@link NarrationFactory}; also reports status for polling.
+ * tier-gated), records the run and enqueues it via {@link NarrationFactory}, and
+ * reports status for polling. The profile-narration quota is reserved upstream
+ * by the {@link Quota} decorator on the controller.
  */
 @Injectable()
 export class NarrationService {
   constructor(
     @InjectRepository(Generation)
     private readonly generations: Repository<Generation>,
-    @InjectRepository(Subscription)
-    private readonly subscriptions: Repository<Subscription>,
-    @InjectRepository(Plan) private readonly plans: Repository<Plan>,
     @InjectRepository(AiModel) private readonly aiModels: Repository<AiModel>,
-    private readonly quota: NarrationQuotaService,
+    private readonly plans: PlanService,
     private readonly narrations: NarrationFactory,
     private readonly github: GithubCommitService,
   ) {}
@@ -56,8 +52,7 @@ export class NarrationService {
     userId: string,
     dto: StartNarrationDto,
   ): Promise<NarrationStartView> {
-    const plan = await this.loadPlan(userId);
-    await this.quota.reserve(userId, plan);
+    const plan = await this.plans.forUser(userId);
     const model = await this.resolveModel(plan, dto.modelId);
 
     const generation = await this.generations.save(
@@ -117,17 +112,6 @@ export class NarrationService {
     await this.generations.save(gen);
 
     return { CommitSha: result.commitSha, HtmlUrl: result.htmlUrl };
-  }
-
-  private async loadPlan(userId: string): Promise<Plan> {
-    const subscription = await this.subscriptions.findOne({
-      where: { userId },
-    });
-    const plan =
-      (subscription?.plan as Plan | undefined) ??
-      (await this.plans.findOne({ where: { tier: PlanTier.FREE } }));
-    if (!plan) throw new BadRequestException('No plan is configured.');
-    return plan;
   }
 
   /** Selected model (tier-checked) or the plan's default from the catalog. */

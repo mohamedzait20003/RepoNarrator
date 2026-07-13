@@ -19,7 +19,6 @@ import {
 } from '../context/prompts';
 import type { NarrationContext } from '../context/narration-context';
 
-/** Max draft passes (initial + revisions) before we ship what we have. */
 const MAX_REVISIONS = 2;
 
 export interface AgentInput {
@@ -46,6 +45,7 @@ const NarrationState = Annotation.Root({
   revisions: Annotation<number>(),
   approved: Annotation<boolean>(),
 });
+
 type NarrationStateType = typeof NarrationState.State;
 
 /**
@@ -107,17 +107,18 @@ export class NarrationAgentService {
       return { critique: text, approved: /\bAPPROVED\b/i.test(text) };
     };
 
-    const route = (s: NarrationStateType): 'draft' | typeof END =>
-      s.approved || s.revisions >= MAX_REVISIONS ? END : 'draft';
+    // Node names must differ from state channels (draft/critique) — LangGraph rule.
+    const route = (s: NarrationStateType): 'write' | typeof END =>
+      s.approved || s.revisions >= MAX_REVISIONS ? END : 'write';
 
     const graph = new StateGraph(NarrationState)
       .addNode('analyze', analyze)
-      .addNode('draft', draft)
-      .addNode('critique', critique)
+      .addNode('write', draft)
+      .addNode('review', critique)
       .addEdge(START, 'analyze')
-      .addEdge('analyze', 'draft')
-      .addEdge('draft', 'critique')
-      .addConditionalEdges('critique', route)
+      .addEdge('analyze', 'write')
+      .addEdge('write', 'review')
+      .addConditionalEdges('review', route)
       .compile();
 
     const final = await graph.invoke({
