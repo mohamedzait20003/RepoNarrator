@@ -25,7 +25,6 @@ const METRICS: Record<
   },
 };
 
-/** Reserves a metered action against the user's per-plan, per-period quota. */
 @Injectable()
 export class QuotaService {
   constructor(
@@ -34,7 +33,6 @@ export class QuotaService {
     private readonly plans: PlanService,
   ) {}
 
-  /** Reserve one unit of `kind` (-1 = unlimited, 0 = not included). Throws 403 if over. */
   async reserve(userId: string, kind: QuotaKind): Promise<void> {
     const metric = METRICS[kind];
     const plan = await this.plans.forUser(userId);
