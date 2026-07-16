@@ -10,8 +10,9 @@ import { NarrationAgentService } from './narration-agent.service';
 
 /**
  * Runs a "Narrate Yourself" job: gathers the user's context (résumé + profile
- * README + repos), then hands it to the LangGraph + Gemini agent to write the
- * profile README. Progress is streamed to the `phase` column for polling.
+ * README + repos), then hands it to the LangGraph agent to write the profile
+ * README on the provider/model resolved from the user's plan + selection.
+ * Progress is streamed to the `phase` column for polling.
  */
 @Injectable()
 export class NarrationRunner {

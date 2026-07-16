@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/common/components/ui/select";
+
 import { useStore } from "@/store";
 import { useAccountName } from "@/lib/auth/account";
 import {
@@ -218,6 +219,7 @@ export default function Narrate() {
         <PhaseProgress
           phase={narration?.Phase ?? null}
           status={status ?? "queued"}
+          model={narration?.Model ?? null}
         />
       )}
 
