@@ -10,13 +10,13 @@ import {
 import { LlmProvider } from '@/shared/Domain/enums/llm-provider.enum';
 import { LlmProviderFactory } from '@/shared/Factories/llm-provider.factory';
 import {
-  ANALYZE_SYSTEM,
-  CRITIQUE_SYSTEM,
-  DRAFT_SYSTEM,
-  analyzeHuman,
-  critiqueHuman,
-  draftHuman,
-} from '../context/prompts';
+  PLANNER_PROMPT,
+  WRITER_PROMPT,
+  REVIEWER_PROMPT,
+  plannerInput,
+  writerInput,
+  reviewerInput,
+} from '../context/agent.loader';
 import type { NarrationContext } from '../context/narration-context';
 
 const MAX_REVISIONS = 2;
@@ -51,7 +51,7 @@ type NarrationStateType = typeof NarrationState.State;
 /**
  * The "Narrate Yourself" agent: a LangGraph state machine that plans, drafts,
  * and self-critiques the profile README (bounded revise loop), running on the
- * Gemini model resolved from the user's plan/selection.
+ * provider/model resolved from the user's plan/selection.
  *
  *   analyze → draft → critique ──(revise, ≤MAX)──▶ draft
  *                          └──────(approve)───────▶ END
@@ -77,8 +77,8 @@ export class NarrationAgentService {
       await input.onPhase?.('analyzing');
       return {
         plan: await call([
-          new SystemMessage(ANALYZE_SYSTEM),
-          new HumanMessage(analyzeHuman(s.context, s.intent)),
+          new SystemMessage(PLANNER_PROMPT),
+          new HumanMessage(plannerInput(s.context, s.intent)),
         ]),
       };
     };
@@ -89,8 +89,10 @@ export class NarrationAgentService {
       await input.onPhase?.('drafting');
       return {
         draft: await call([
-          new SystemMessage(DRAFT_SYSTEM),
-          new HumanMessage(draftHuman(s.context, s.intent, s.plan, s.critique)),
+          new SystemMessage(WRITER_PROMPT),
+          new HumanMessage(
+            writerInput(s.context, s.intent, s.plan, s.critique),
+          ),
         ]),
         revisions: s.revisions + 1,
       };
@@ -101,8 +103,8 @@ export class NarrationAgentService {
     ): Promise<Partial<NarrationStateType>> => {
       await input.onPhase?.('reviewing');
       const text = await call([
-        new SystemMessage(CRITIQUE_SYSTEM),
-        new HumanMessage(critiqueHuman(s.plan, s.draft)),
+        new SystemMessage(REVIEWER_PROMPT),
+        new HumanMessage(reviewerInput(s.context, s.plan, s.draft)),
       ]);
       return { critique: text, approved: /\bAPPROVED\b/i.test(text) };
     };
