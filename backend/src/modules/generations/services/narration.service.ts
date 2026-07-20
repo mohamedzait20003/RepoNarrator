@@ -14,7 +14,7 @@ import { PlanService } from '@/modules/subscription/services/plan.service';
 import { GenerationKind } from '@/shared/Domain/enums/generation-kind.enum';
 import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
 import { PushMode } from '@/shared/Domain/enums/push-mode.enum';
-import { ModelTier } from '@/shared/Domain/enums/model-tier.enum';
+import { tierWithin } from '@/shared/Domain/enums/model-tier.enum';
 import { GithubCommitService } from '@/modules/generations/services/github-commit.service';
 import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
 import type { StartNarrationDto } from '@/modules/generations/dto/start-narration.dto';
@@ -23,13 +23,6 @@ import type {
   NarrationStartView,
   NarrationView,
 } from '@/modules/generations/dto/narration.dto';
-
-/** Model access order — a user may use any model at or below their plan's tier. */
-const TIER_RANK: Record<ModelTier, number> = {
-  [ModelTier.ECONOMY]: 0,
-  [ModelTier.STANDARD]: 1,
-  [ModelTier.PREMIUM]: 2,
-};
 
 /**
  * "Narrate Yourself" job lifecycle. Resolves the user's plan + model (catalog,
@@ -116,10 +109,9 @@ export class NarrationService {
 
   /** Selected model (tier-checked) or the plan's default from the catalog. */
   private async resolveModel(plan: Plan, modelId?: string): Promise<AiModel> {
-    const rank = TIER_RANK[plan.modelTier];
     const allowed = (
       await this.aiModels.find({ where: { isEnabled: true } })
-    ).filter((m) => TIER_RANK[m.tier] <= rank);
+    ).filter((m) => tierWithin(plan.modelTier, m.tier));
 
     if (allowed.length === 0) {
       throw new BadRequestException(

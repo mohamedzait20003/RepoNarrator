@@ -4,14 +4,8 @@ import { Repository } from 'typeorm';
 
 import { AiModel } from '@/modules/subscription/entities/ai-model.entity';
 import { PlanService } from '@/modules/subscription/services/plan.service';
-import { ModelTier } from '@/shared/Domain/enums/model-tier.enum';
+import { tierWithin } from '@/shared/Domain/enums/model-tier.enum';
 import type { AiModelView } from '@/modules/generations/dto/ai-model.dto';
-
-const TIER_RANK: Record<ModelTier, number> = {
-  [ModelTier.ECONOMY]: 0,
-  [ModelTier.STANDARD]: 1,
-  [ModelTier.PREMIUM]: 2,
-};
 
 /** The enabled models a user may pick — those at or below their plan's tier. */
 @Injectable()
@@ -23,7 +17,6 @@ export class AiModelsService {
 
   async available(userId: string): Promise<AiModelView[]> {
     const plan = await this.plans.forUser(userId);
-    const rank = TIER_RANK[plan.modelTier];
 
     return (
       await this.aiModels.find({
@@ -31,7 +24,7 @@ export class AiModelsService {
         order: { tier: 'ASC', displayName: 'ASC' },
       })
     )
-      .filter((m) => TIER_RANK[m.tier] <= rank)
+      .filter((m) => tierWithin(plan.modelTier, m.tier))
       .map((m) => ({
         Id: m.id,
         Name: m.displayName,
