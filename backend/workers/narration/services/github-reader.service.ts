@@ -22,6 +22,23 @@ interface GithubRepoRaw {
 export interface GithubReadResult {
   profileReadme: string | null;
   repos: RepoContext[];
+  /** Correct, ready-to-use GitHub stat-widget embeds (built in code, see below). */
+  statsEmbeds: string;
+}
+
+/**
+ * The canonical GitHub stat-widget embeds for a login, built in code so the agent
+ * never has to guess these URLs — LLM-written stat URLs are frequently wrong or
+ * point at dead providers (e.g. the old `github-readme-streak-stats.herokuapp.com`).
+ */
+function buildStatsEmbeds(login: string): string {
+  const u = encodeURIComponent(login);
+  return [
+    `![${login}'s GitHub stats](https://github-readme-stats.vercel.app/api?username=${u}&show_icons=true)`,
+    `![Top languages](https://github-readme-stats.vercel.app/api/top-langs/?username=${u}&layout=compact)`,
+    `![GitHub streak](https://streak-stats.demolab.com?user=${u})`,
+    `![GitHub trophies](https://github-profile-trophy.vercel.app?username=${u})`,
+  ].join('\n');
 }
 
 /**
@@ -58,7 +75,11 @@ export class GithubReaderService {
       });
     }
 
-    return { profileReadme, repos: withReadmes };
+    return {
+      profileReadme,
+      repos: withReadmes,
+      statsEmbeds: buildStatsEmbeds(login),
+    };
   }
 
   private async credentials(

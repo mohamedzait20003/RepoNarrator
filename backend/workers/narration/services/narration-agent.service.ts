@@ -10,9 +10,13 @@ import {
 import { LlmProvider } from '@/shared/Domain/enums/llm-provider.enum';
 import { LlmProviderFactory } from '@/shared/Factories/llm-provider.factory';
 import {
+  RESUME_ANALYST_PROMPT,
+  REPO_ANALYST_PROMPT,
   PLANNER_PROMPT,
   WRITER_PROMPT,
   REVIEWER_PROMPT,
+  resumeAnalystInput,
+  repoAnalystInput,
   plannerInput,
   writerInput,
   reviewerInput,
@@ -39,6 +43,8 @@ export interface AgentResult {
 const NarrationState = Annotation.Root({
   context: Annotation<NarrationContext>(),
   intent: Annotation<string | null>(),
+  resumeProfile: Annotation<string>(),
+  repoProfile: Annotation<string>(),
   plan: Annotation<string>(),
   draft: Annotation<string>(),
   critique: Annotation<string>(),
@@ -49,12 +55,15 @@ const NarrationState = Annotation.Root({
 type NarrationStateType = typeof NarrationState.State;
 
 /**
- * The "Narrate Yourself" agent: a LangGraph state machine that plans, drafts,
- * and self-critiques the profile README (bounded revise loop), running on the
- * provider/model resolved from the user's plan/selection.
+ * The "Narrate Yourself" agent: a LangGraph state machine that analyzes the
+ * sources, plans, drafts, and self-critiques the profile README (bounded revise
+ * loop), on the provider/model resolved from the user's plan/selection.
  *
- *   analyze → draft → critique ──(revise, ≤MAX)──▶ draft
- *                          └──────(approve)───────▶ END
+ *   ┌ résumé-analyst ┐
+ *   │                ├─▶ analyze → draft → review ──(revise, ≤MAX)──▶ draft
+ *   └ repo-analyst  ─┘                         └───────(approve)──────▶ END
+ *
+ * The two analysts run in parallel (fan-out from START) and fan in to the planner.
  */
 @Injectable()
 export class NarrationAgentService {
@@ -71,6 +80,30 @@ export class NarrationAgentService {
       return textOf(res);
     };
 
+    const resumeAnalyst = async (
+      s: NarrationStateType,
+    ): Promise<Partial<NarrationStateType>> => {
+      await input.onPhase?.('analyzing');
+      return {
+        resumeProfile: await call([
+          new SystemMessage(RESUME_ANALYST_PROMPT),
+          new HumanMessage(resumeAnalystInput(s.context)),
+        ]),
+      };
+    };
+
+    const repoAnalyst = async (
+      s: NarrationStateType,
+    ): Promise<Partial<NarrationStateType>> => {
+      await input.onPhase?.('analyzing');
+      return {
+        repoProfile: await call([
+          new SystemMessage(REPO_ANALYST_PROMPT),
+          new HumanMessage(repoAnalystInput(s.context)),
+        ]),
+      };
+    };
+
     const analyze = async (
       s: NarrationStateType,
     ): Promise<Partial<NarrationStateType>> => {
@@ -78,7 +111,9 @@ export class NarrationAgentService {
       return {
         plan: await call([
           new SystemMessage(PLANNER_PROMPT),
-          new HumanMessage(plannerInput(s.context, s.intent)),
+          new HumanMessage(
+            plannerInput(s.context, s.intent, s.resumeProfile, s.repoProfile),
+          ),
         ]),
       };
     };
@@ -91,7 +126,14 @@ export class NarrationAgentService {
         draft: await call([
           new SystemMessage(WRITER_PROMPT),
           new HumanMessage(
-            writerInput(s.context, s.intent, s.plan, s.critique),
+            writerInput(
+              s.context,
+              s.intent,
+              s.plan,
+              s.critique,
+              s.resumeProfile,
+              s.repoProfile,
+            ),
           ),
         ]),
         revisions: s.revisions + 1,
@@ -114,10 +156,15 @@ export class NarrationAgentService {
       s.approved || s.revisions >= MAX_REVISIONS ? END : 'write';
 
     const graph = new StateGraph(NarrationState)
+      .addNode('resume', resumeAnalyst)
+      .addNode('repos', repoAnalyst)
       .addNode('analyze', analyze)
       .addNode('write', draft)
       .addNode('review', critique)
-      .addEdge(START, 'analyze')
+      .addEdge(START, 'resume')
+      .addEdge(START, 'repos')
+      .addEdge('resume', 'analyze')
+      .addEdge('repos', 'analyze')
       .addEdge('analyze', 'write')
       .addEdge('write', 'review')
       .addConditionalEdges('review', route)
@@ -126,6 +173,8 @@ export class NarrationAgentService {
     const final = await graph.invoke({
       context: input.context,
       intent: input.intent,
+      resumeProfile: '',
+      repoProfile: '',
       plan: '',
       draft: '',
       critique: '',

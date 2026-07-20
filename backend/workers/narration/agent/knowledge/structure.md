@@ -1,16 +1,43 @@
 ---
 id: structure
-title: Structure — required sections
+title: Structure — design it for this person, don't apply a template
 ---
-Unless the user's intent overrides it, the README MUST include:
+There is no fixed section template. Design the section set, their order, their
+grouping, and their headings to fit THIS developer, the role they're targeting,
+and the reader (see the targeting & ATS principles). Two strong candidates rarely
+deserve the identical layout — lead with what their specific reader screens on.
 
-- A short, specific intro: who they are and what they focus on.
-- Skills / tech, grouped and scannable — not one undifferentiated list.
-- **Work Experience** whenever the résumé lists roles or employers. This section
-  is required and must never be dropped or collapsed into the intro.
-- 3–5 featured projects drawn from their repositories, each with a one-line
-  what/why and a link.
-- **Every dynamic embed from the current README, preserved verbatim** — GitHub
-  stats cards, streak stats, trophies, shields.io badges, visitor counters, etc.
-  Reproduce those exact Markdown image/badge lines with their URLs unchanged.
-  Never drop, rewrite, or "modernize" them.
+Whatever structure you design must still carry the content that role-fit and ATS
+require, arranged however serves the target best:
+
+- **Header** — name + role/title + a short positioning line.
+- **Summary** — a few first-person sentences carrying the target role's keywords
+  in **text** (not only badges), grounded in real work.
+- **Skills** — the real technologies, grouped and labelled; keyword-bearing in
+  text as well as badges (ATS and parsers can't read images).
+- **Work Experience** — REQUIRED whenever the résumé lists roles. Standard
+  heading; each entry `title | employer | dates` plus one or two concrete lines.
+  Never drop it.
+- **Education** — whenever the résumé has it; a standard Education section with
+  degree, institution, and dates (ATS expects this — do not bury it in the intro).
+- **Featured Projects** — three to five, each with a link and a grounded one-line
+  what/why.
+- **GitHub Stats** — the canonical stats block supplied in the context,
+  reproduced verbatim (see preserve-embeds). Never invent stat-widget URLs. Omit
+  the section if no canonical block is provided.
+- **Contact / socials** — when the sources support it.
+- Other sections (Certifications, Publications, Open Source, Awards) when the
+  résumé supports them and they help the target.
+
+You choose the ordering, grouping, emphasis, and headings — optimized for the
+role, the reader, and ATS parseability.
+
+Hard rules across the whole README:
+
+- **No duplication** — any badge or embed appears exactly once.
+- **No padding** — omit a section rather than filling it with filler or
+  duplicated content.
+- **Preserve content & voice, redesign layout.** When a current README exists,
+  keep the developer's real content, taglines, personality, and embeds — but the
+  layout is yours to redesign for the target. Improve on what they had; don't
+  just reproduce it, and don't discard their substance.

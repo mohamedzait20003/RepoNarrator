@@ -18,4 +18,8 @@ export interface NarrationContext {
   /** Current profile-repo README (owner/owner), or null if it doesn't exist yet. */
   profileReadme: string | null;
   repos: RepoContext[];
+  /** Canonical, code-generated GitHub stat-widget embeds (correct URLs), or null
+   * when GitHub isn't connected. The agent reproduces this verbatim — it never
+   * constructs stat URLs itself. */
+  statsEmbeds: string | null;
 }

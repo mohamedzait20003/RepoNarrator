@@ -2,11 +2,20 @@
 id: feature-projects
 title: Feature the right projects
 ---
-Choose 3–5 projects to highlight from the provided repositories.
+Highlight three to five projects from the provided repositories — curate, don't
+dump.
 
-- Prefer projects that match the résumé's focus and the user's intent, then
-  stars and recency.
-- For each: a one-line "what it is / why it matters" grounded in its description
-  or README, plus a link to the repo.
-- Curate — don't list every repo, and don't invent projects that aren't in the
-  sources.
+Selection, in priority order:
+
+1. Projects that match the résumé's focus and the user's stated intent.
+2. Then stars, then recency / activity.
+
+For each featured project:
+
+- A link to the repo.
+- One or two sentences on what it is and why it matters, grounded in its
+  description or README. Name the notable stack or technique when it's real
+  (e.g. "FastAPI + Celery + LangChain"), not as filler.
+
+Don't list every repository, don't invent projects, and don't feature the same
+project twice.

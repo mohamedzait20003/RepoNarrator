@@ -43,6 +43,7 @@ export class NarrationContextService {
       resumeText,
       profileReadme: gh?.profileReadme ?? null,
       repos: gh?.repos ?? [],
+      statsEmbeds: gh?.statsEmbeds ?? null,
     };
   }
 }
