@@ -11,7 +11,11 @@ type UsageField = 'profileNarrationsUsed' | 'generationsUsed';
 
 const METRICS: Record<
   QuotaKind,
-  { label: string; field: UsageField; limit: (plan: Plan) => number }
+  {
+    label: string;
+    field: UsageField;
+    limit: (plan: Plan) => number | undefined;
+  }
 > = {
   [QuotaKind.PROFILE_NARRATION]: {
     label: 'Narrate Yourself',
@@ -38,7 +42,15 @@ export class QuotaService {
     const plan = await this.plans.forUser(userId);
     const limit = metric.limit(plan);
 
-    if (limit === 0) {
+    // Fail closed: a missing/misconfigured limit denies rather than silently
+    // allowing unlimited usage (a mis-seeded plan must never grant infinite runs).
+    if (limit === undefined) {
+      throw new ForbiddenException(
+        `Your plan does not include ${metric.label}.`,
+      );
+    }
+    // -1 = unlimited; 0 or negative = not included.
+    if (limit !== -1 && limit <= 0) {
       throw new ForbiddenException(
         `Your plan does not include ${metric.label}.`,
       );
