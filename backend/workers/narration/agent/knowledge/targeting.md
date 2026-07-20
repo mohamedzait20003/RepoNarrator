@@ -26,9 +26,10 @@ but structure it as if it could be screened:
 
 - Use conventional, parseable headings: "Summary", "Skills", "Work Experience",
   "Education", "Projects", "Certifications". Parsers and skimmers key off these.
-- ATS read **text, not images.** Skill/tech badges are images, so the role's key
-  technologies and keywords must ALSO appear in plain text — in the summary, the
-  experience lines, or a short text skills line — never in badges alone.
+- ATS read **text, not images.** The Skills section uses badges (good for human
+  readers), so make sure the role's key technologies and keywords ALSO appear in
+  plain text in the Summary and Work Experience — that prose is what an ATS
+  matches on. Don't rely on the badges alone for keywords.
 - Keep each role as a clean, consistent, parseable `title | employer | dates`.
 - Don't bury critical content in layout tricks (tables used only for layout,
   deep nesting) that a parser or a fast skim would miss.

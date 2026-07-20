@@ -13,8 +13,11 @@ require, arranged however serves the target best:
 - **Header** — name + role/title + a short positioning line.
 - **Summary** — a few first-person sentences carrying the target role's keywords
   in **text** (not only badges), grounded in real work.
-- **Skills** — the real technologies, grouped and labelled; keyword-bearing in
-  text as well as badges (ATS and parsers can't read images).
+- **Skills** — render the merged skill set as **shields.io badges**, grouped
+  under a few labelled buckets (e.g. Languages, Backend/Web, AI/ML, Data/Cloud,
+  Tools). Reuse the developer's existing skill badges verbatim and add badges for
+  additional demonstrated skills. Because an ATS can't read badge images, make
+  sure the top role keywords ALSO appear in the Summary and Work Experience prose.
 - **Work Experience** — REQUIRED whenever the résumé lists roles. Standard
   heading; each entry `title | employer | dates` plus one or two concrete lines.
   Never drop it.

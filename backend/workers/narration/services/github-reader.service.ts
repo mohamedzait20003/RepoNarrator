@@ -27,18 +27,16 @@ export interface GithubReadResult {
 }
 
 /**
- * The canonical GitHub stat-widget embeds for a login, built in code so the agent
- * never has to guess these URLs — LLM-written stat URLs are frequently wrong or
- * point at dead providers (e.g. the old `github-readme-streak-stats.herokuapp.com`).
+ * The GitHub stat-widget embeds for a login, built in code so the agent never has
+ * to guess these URLs. Limited to the streak widget on purpose: as of 2026 the
+ * public github-readme-stats (503 DEPLOYMENT_PAUSED) and github-profile-trophy
+ * (402) instances were shut down, so their embeds render as broken images. Only
+ * streak-stats.demolab.com is still self-hosted and healthy. Re-add the stats
+ * card / top-langs / trophy here once pointed at a working (self-hosted) instance.
  */
 function buildStatsEmbeds(login: string): string {
   const u = encodeURIComponent(login);
-  return [
-    `![${login}'s GitHub stats](https://github-readme-stats.vercel.app/api?username=${u}&show_icons=true)`,
-    `![Top languages](https://github-readme-stats.vercel.app/api/top-langs/?username=${u}&layout=compact)`,
-    `![GitHub streak](https://streak-stats.demolab.com?user=${u})`,
-    `![GitHub trophies](https://github-profile-trophy.vercel.app?username=${u})`,
-  ].join('\n');
+  return `![${login}'s GitHub streak](https://streak-stats.demolab.com/?user=${u})`;
 }
 
 /**

@@ -8,7 +8,11 @@ mixing them up is the single most common defect in generated profile READMEs.
 **1. Static skill/tech badges** — shields.io badges (`img.shields.io/badge/…`)
 naming a language, framework, or tool. They describe what the developer knows.
 
-- They belong in the **Skills** section, grouped, each listed **once**.
+- They ARE the **Skills** section: render skills as badges, grouped and labelled,
+  each listed **once** — not a plain-text list.
+- **Preserve the developer's existing skill badges verbatim** (already curated
+  with correct logos). For merged skills with no existing badge, add one:
+  `https://img.shields.io/badge/NAME-COLOR?style=flat&logo=SLUG&logoColor=white`.
 - They never go in the GitHub Stats section, and they are never repeated.
 
 **2. Dynamic stat embeds** — live widgets keyed to the username (stats card, top
