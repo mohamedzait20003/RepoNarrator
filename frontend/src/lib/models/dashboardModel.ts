@@ -9,6 +9,10 @@ export interface DashboardPlan {
 }
 
 export interface DashboardUsage {
+  /** "Narrate Yourself" runs used this period (enforced by the quota guard). */
+  NarrationsUsed: number;
+  /** -1 = unlimited. */
+  NarrationLimit: number;
   GenerationsUsed: number;
   /** -1 = unlimited. */
   GenerationLimit: number;
