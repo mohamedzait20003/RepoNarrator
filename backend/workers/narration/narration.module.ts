@@ -15,8 +15,10 @@ import { NarrationAgentService } from './services/narration-agent.service';
 import { NarrationRunner } from './services/narration-runner.service';
 
 /**
- * Narration worker providers. The DB connection + config come from the parent
- * {@link WorkersModule}; this only registers the repositories + services it uses.
+ * "Narrate Yourself" (profile README) worker providers. The DB connection +
+ * config come from the parent {@link WorkersModule}; this only registers the
+ * repositories + services it uses. Repo-README generation lives in its own
+ * {@link RepoWorkerModule}.
  */
 @Module({
   imports: [TypeOrmModule.forFeature([Generation, UsageCounter, User, Resume])],

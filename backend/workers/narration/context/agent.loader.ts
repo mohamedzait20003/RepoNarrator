@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import type { NarrationContext } from './narration-context';
+import type { NarrationContext, RepoReadmeContext } from './narration-context';
 
 /** Truncate a repo README when packing it into a synthesis prompt. */
 const REPO_README_IN_PROMPT = 1_500;
@@ -81,6 +81,8 @@ export const REPO_ANALYST_PROMPT = assemble('repo-analyst.agent.md');
 export const PLANNER_PROMPT = assemble('planner.agent.md');
 export const WRITER_PROMPT = assemble('writer.agent.md');
 export const REVIEWER_PROMPT = assemble('reviewer.agent.md');
+export const REPO_WRITER_PROMPT = assemble('repo-writer.agent.md');
+export const REPO_REVIEWER_PROMPT = assemble('repo-reviewer.agent.md');
 
 // --- Human-turn builders: pack the working context into each role's input. ---
 
@@ -198,4 +200,44 @@ function contextBlock(ctx: NarrationContext): string {
   ]
     .filter(Boolean)
     .join('\n\n');
+}
+
+// --- Repo-README builders: pack one repository's content into the agent input. ---
+
+export function repoWriterInput(
+  context: RepoReadmeContext,
+  intent: string | null,
+  critique: string,
+): string {
+  const parts = [intentLine(intent)];
+  if (critique && !/\bAPPROVED\b/i.test(critique)) {
+    parts.push(`# Revision feedback\n${critique}`);
+  }
+  parts.push(repoContextBlock(context));
+  return parts.filter(Boolean).join('\n\n');
+}
+
+export function repoReviewerInput(
+  context: RepoReadmeContext,
+  draft: string,
+): string {
+  return [repoContextBlock(context), `# Draft README\n${draft}`].join('\n\n');
+}
+
+function repoContextBlock(ctx: RepoReadmeContext): string {
+  const parts = [
+    `# Repository: ${ctx.fullName}`,
+    `Description: ${ctx.description ?? '(none)'}`,
+    `Languages: ${ctx.languages.length ? ctx.languages.join(', ') : '(unknown)'}`,
+    `\n## Top-level files\n${
+      ctx.fileTree.length ? ctx.fileTree.join('\n') : '(none)'
+    }`,
+  ];
+  if (ctx.manifest) parts.push(`\n## Primary manifest\n${ctx.manifest}`);
+  parts.push(
+    ctx.readme
+      ? `\n## Current README\n${ctx.readme}`
+      : '\n## Current README\n(none yet)',
+  );
+  return parts.join('\n');
 }

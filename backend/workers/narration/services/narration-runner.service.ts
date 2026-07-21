@@ -1,104 +1,50 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { Generation } from '@/modules/generations/entities/generation.entity';
 import { UsageCounter } from '@/modules/subscription/entities/usage-counter.entity';
-import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
+import { LlmProvider } from '@/shared/Domain/enums/llm-provider.enum';
+import {
+  GenerationRunner,
+  type AgentOutput,
+  type PhaseHook,
+  type UsageField,
+} from '../../generation-runner.base';
 import { NarrationContextService } from './narration-context.service';
 import { NarrationAgentService } from './narration-agent.service';
 
 /**
- * Runs a "Narrate Yourself" job: gathers the user's context (résumé + profile
- * README + repos), then hands it to the LangGraph agent to write the profile
- * README on the provider/model resolved from the user's plan + selection.
- * Progress is streamed to the `phase` column for polling.
+ * "Narrate Yourself" worker: aggregates the user's résumé + all their repos and
+ * runs the profile agent to produce a GitHub profile README. Consumes the
+ * `narration` queue. Shared job lifecycle lives in {@link GenerationRunner}.
  */
 @Injectable()
-export class NarrationRunner {
-  private readonly logger = new Logger(NarrationRunner.name);
+export class NarrationRunner extends GenerationRunner {
+  protected readonly usageField: UsageField = 'profileNarrationsUsed';
 
   constructor(
-    @InjectRepository(Generation)
-    private readonly generations: Repository<Generation>,
-    @InjectRepository(UsageCounter)
-    private readonly usage: Repository<UsageCounter>,
+    @InjectRepository(Generation) generations: Repository<Generation>,
+    @InjectRepository(UsageCounter) usage: Repository<UsageCounter>,
     private readonly context: NarrationContextService,
     private readonly agent: NarrationAgentService,
-  ) {}
+  ) {
+    super(generations, usage);
+  }
 
-  async run(generationId: string): Promise<void> {
-    const gen = await this.generations.findOne({
-      where: { id: generationId },
+  protected async generate(
+    gen: Generation,
+    provider: LlmProvider,
+    model: string,
+    onPhase: PhaseHook,
+  ): Promise<AgentOutput> {
+    const context = await this.context.gather(gen.userId);
+    return this.agent.run({
+      context,
+      intent: gen.intent,
+      provider,
+      modelId: model,
+      onPhase,
     });
-    if (!gen) {
-      this.logger.warn(`Generation ${generationId} not found — skipping.`);
-      return;
-    }
-
-    try {
-      await this.advance(gen, 'gathering');
-      const context = await this.context.gather(gen.userId);
-
-      const provider = gen.provider;
-      const modelId = gen.model;
-      if (!provider || !modelId) {
-        throw new Error('Narration has no model assigned.');
-      }
-
-      const result = await this.agent.run({
-        context,
-        intent: gen.intent,
-        provider,
-        modelId,
-        onPhase: (phase) => this.advance(gen, phase),
-      });
-
-      if (!result.markdown) {
-        throw new Error('The model returned an empty README.');
-      }
-
-      gen.generatedMd = result.markdown;
-      gen.inputTokens = result.inputTokens;
-      gen.outputTokens = result.outputTokens;
-      gen.status = GenerationStatus.COMPLETED;
-      gen.phase = 'completed';
-      gen.completedAt = new Date();
-      await this.generations.save(gen);
-      this.logger.log(
-        `Narration ${gen.id} completed — ${context.repos.length} repos, ${result.outputTokens} output tokens.`,
-      );
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
-      gen.status = GenerationStatus.FAILED;
-      gen.phase = 'failed';
-      gen.error = message;
-      await this.generations.save(gen);
-      await this.refund(gen);
-      throw err instanceof Error ? err : new Error(message);
-    }
-  }
-
-  private async advance(gen: Generation, phase: string): Promise<void> {
-    gen.status = GenerationStatus.RUNNING;
-    gen.phase = phase;
-    await this.generations.save(gen);
-  }
-
-  /** Give back the reserved profile-narration when a run fails. */
-  private async refund(gen: Generation): Promise<void> {
-    const periodStart = this.periodOf(gen.createdAt);
-    const row = await this.usage.findOne({
-      where: { userId: gen.userId, periodStart },
-    });
-    if (row && row.profileNarrationsUsed > 0) {
-      row.profileNarrationsUsed -= 1;
-      await this.usage.save(row);
-    }
-  }
-
-  private periodOf(date: Date): string {
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    return `${date.getUTCFullYear()}-${month}-01`;
   }
 }

@@ -4,6 +4,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 
 import { User } from '@/modules/identity/entities/user.entity';
 import { Generation } from '@/modules/generations/entities/generation.entity';
+import { Repo } from '@/modules/generations/entities/repo.entity';
 import { AiModel } from '@/modules/subscription/entities/ai-model.entity';
 import { Subscription } from '@/modules/subscription/entities/subscription.entity';
 import { Plan } from '@/modules/subscription/entities/plan.entity';
@@ -17,11 +18,13 @@ import { QuotaService } from '@/modules/subscription/services/quota.service';
 
 import { ReposController } from '@/modules/generations/controllers/repos.controller';
 import { GithubReposService } from '@/modules/generations/services/github-repos.service';
+import { RepoGenerationService } from '@/modules/generations/services/repo-generation.service';
 import { NarrationController } from '@/modules/generations/controllers/narration.controller';
 import { NarrationService } from '@/modules/generations/services/narration.service';
 import { NarrationTailorService } from '@/modules/generations/services/narration-tailor.service';
 import { GithubCommitService } from '@/modules/generations/services/github-commit.service';
 import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
+import { RepoGenerationFactory } from '@/modules/generations/factories/repo-generation.factory';
 import { AiModelsController } from '@/modules/generations/controllers/ai-models.controller';
 import { AiModelsService } from '@/modules/generations/services/ai-models.service';
 
@@ -34,6 +37,7 @@ import { AiModelsService } from '@/modules/generations/services/ai-models.servic
     TypeOrmModule.forFeature([
       User,
       Generation,
+      Repo,
       AiModel,
       Subscription,
       Plan,
@@ -45,10 +49,12 @@ import { AiModelsService } from '@/modules/generations/services/ai-models.servic
   controllers: [ReposController, NarrationController, AiModelsController],
   providers: [
     GithubReposService,
+    RepoGenerationService,
     NarrationService,
     NarrationTailorService,
     GithubCommitService,
     NarrationFactory,
+    RepoGenerationFactory,
     AiModelsService,
     LlmProviderFactory,
     PlanService,

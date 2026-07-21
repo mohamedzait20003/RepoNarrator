@@ -27,7 +27,15 @@ import { Skeleton } from "@/common/components/ui/skeleton";
 import { useStore } from "@/store";
 import { useAccountName } from "@/lib/auth/account";
 import { useRepos } from "@/lib/hooks/useRepos";
+import {
+  useCommitRepoGeneration,
+  useRepoGeneration,
+  useStartRepoGeneration,
+} from "@/lib/hooks/useRepoGeneration";
 import { EmptyState } from "@/modules/client/components/EmptyState";
+import { PhaseProgress } from "@/modules/client/sections/narrate/PhaseProgress";
+import { ReadmeEditor } from "@/modules/client/sections/narrate/ReadmeEditor";
+import type { RepoItem } from "@/lib/models/repoModel";
 
 function updated(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -41,7 +49,104 @@ export function RepoGenerateList() {
   const linked = useStore((s) => s.userData?.githubLinked);
   const name = useAccountName();
   const [page, setPage] = useState(1);
+  const [gen, setGen] = useState<{ id: string; repo: string } | null>(null);
+  const [draft, setDraft] = useState<string | null>(null);
+  const [committedUrl, setCommittedUrl] = useState<string | null>(null);
+
   const { data, isLoading, isError, isPlaceholderData } = useRepos(page);
+  const start = useStartRepoGeneration();
+  const commit = useCommitRepoGeneration();
+  const { data: generation } = useRepoGeneration(gen?.id ?? null);
+
+  const status = generation?.Status;
+  const running = Boolean(gen) && status !== "completed" && status !== "failed";
+  const failed = status === "failed";
+  const completed = status === "completed";
+
+  const onGenerate = (repo: RepoItem) =>
+    start.mutate(
+      { repoId: repo.Id },
+      {
+        onSuccess: (res) => {
+          if (res.Data) {
+            setDraft(null);
+            setCommittedUrl(null);
+            setGen({ id: res.Data.Id, repo: repo.FullName });
+          }
+        },
+      },
+    );
+
+  const onBack = () => {
+    setGen(null);
+    setDraft(null);
+    setCommittedUrl(null);
+  };
+
+  const onCommit = () => {
+    if (!gen) return;
+    const content = draft ?? generation?.GeneratedMd ?? "";
+    if (!content.trim()) return;
+    commit.mutate(
+      { id: gen.id, content },
+      { onSuccess: (res) => setCommittedUrl(res.Data?.HtmlUrl ?? null) },
+    );
+  };
+
+  // --- Active generation: show the workspace instead of the repo list. ---
+  if (gen) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            README for{" "}
+            <span className="font-medium text-foreground">{gen.repo}</span>
+          </p>
+          <Button variant="outline" size="sm" className="gap-1" onClick={onBack}>
+            <ChevronLeft className="h-4 w-4" />
+            Back to repos
+          </Button>
+        </div>
+
+        {running && (
+          <PhaseProgress
+            phase={generation?.Phase ?? null}
+            status={status ?? "queued"}
+            model={generation?.Model ?? null}
+          />
+        )}
+
+        {failed && (
+          <Card className="py-0">
+            <EmptyState
+              icon={ServerCrash}
+              title="That didn't go through"
+              description={
+                generation?.Error ?? "Something went wrong. Please try again."
+              }
+              action={<Button onClick={onBack}>Back to repos</Button>}
+            />
+          </Card>
+        )}
+
+        {completed && (
+          <ReadmeEditor
+            value={draft ?? generation?.GeneratedMd ?? ""}
+            onChange={(v) => {
+              setDraft(v);
+              setCommittedUrl(null);
+            }}
+            model={generation?.Model ?? null}
+            onStartOver={onBack}
+            onCommit={onCommit}
+            committing={commit.isPending}
+            committedUrl={committedUrl}
+            commitError={commit.error?.message ?? null}
+          />
+        )}
+      </div>
+    );
+  }
 
   if (!linked) {
     return (
@@ -152,6 +257,8 @@ export function RepoGenerateList() {
                   <Button
                     size="sm"
                     className="gap-1.5 bg-violet-600 text-white hover:bg-violet-700"
+                    disabled={start.isPending}
+                    onClick={() => onGenerate(repo)}
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     Generate

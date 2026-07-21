@@ -58,6 +58,54 @@ export class GithubCommitService {
     };
   }
 
+  /** Push a README straight to a target repo's default branch (direct commit). */
+  async commitRepoReadme(
+    userId: string,
+    fullName: string,
+    branch: string,
+    content: string,
+  ): Promise<CommitResult> {
+    const { token } = await this.credentials(userId);
+    const sha = await this.readmeShaFor(fullName, branch, token);
+
+    const res = await fetch(`${GH}/repos/${fullName}/contents/README.md`, {
+      method: 'PUT',
+      headers: this.headers(token),
+      body: JSON.stringify({
+        message: 'Update README via CodeAtlas',
+        content: Buffer.from(content, 'utf8').toString('base64'),
+        branch,
+        ...(sha ? { sha } : {}),
+      }),
+    });
+    if (!res.ok) throw this.fail(res.status, 'commit README');
+
+    const data = (await res.json()) as {
+      commit: { sha: string };
+      content: { html_url: string } | null;
+    };
+    return {
+      commitSha: data.commit.sha,
+      htmlUrl: data.content?.html_url ?? `https://github.com/${fullName}`,
+    };
+  }
+
+  /** SHA of a repo's existing README on `branch` (undefined when there is none). */
+  private async readmeShaFor(
+    fullName: string,
+    branch: string,
+    token: string,
+  ): Promise<string | undefined> {
+    const res = await fetch(
+      `${GH}/repos/${fullName}/contents/README.md?ref=${encodeURIComponent(branch)}`,
+      { headers: this.headers(token) },
+    );
+    if (res.status === 404) return undefined;
+    if (!res.ok) throw this.fail(res.status, 'read README');
+    const data = (await res.json()) as { sha?: string };
+    return data.sha;
+  }
+
   private async credentials(
     userId: string,
   ): Promise<{ login: string; token: string }> {

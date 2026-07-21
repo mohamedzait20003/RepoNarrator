@@ -42,6 +42,12 @@ export class GithubReposService {
     return paginate(all, page, pageSize);
   }
 
+  /** One of the user's own repos by GitHub id (from the cached list), or null. */
+  async findById(userId: string, githubId: string): Promise<RepoItem | null> {
+    const all = await this.getAllRepos(userId);
+    return all.find((r) => r.Id === githubId) ?? null;
+  }
+
   /** Full, profile-repo-excluded repo list for the user (cached). */
   private async getAllRepos(userId: string): Promise<RepoItem[]> {
     const key = `repos:${userId}`;

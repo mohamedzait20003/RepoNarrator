@@ -6,6 +6,7 @@ import configuration from '@/shared/Configuration/configuration';
 import { ENTITIES } from '@/shared/Database/entities';
 import { MailWorkerModule } from './mail/mail.module';
 import { NarrationWorkerModule } from './narration/narration.module';
+import { RepoWorkerModule } from './repo/repo.module';
 
 /**
  * Single application context for all background workers. Sets up config + the
@@ -27,6 +28,7 @@ import { NarrationWorkerModule } from './narration/narration.module';
     }),
     MailWorkerModule,
     NarrationWorkerModule,
+    RepoWorkerModule,
   ],
 })
 export class WorkersModule {}
