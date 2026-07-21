@@ -87,7 +87,7 @@ export function Navbar() {
               <BookOpen className="h-4 w-4 text-white" />
             </span>
             <span className="text-base">
-              Repo<span className="text-violet-600">Narrator</span>
+              Code<span className="text-violet-600">Atlas</span>
             </span>
           </Link>
         ) : (
@@ -99,7 +99,7 @@ export function Navbar() {
               <BookOpen className="h-4 w-4 text-white" />
             </span>
             <span className="text-base">
-              Repo<span className="text-violet-600">Narrator</span>
+              Code<span className="text-violet-600">Atlas</span>
             </span>
           </Link>
         )}

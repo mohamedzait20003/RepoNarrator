@@ -29,7 +29,7 @@ export default function AdminHome() {
               <BookOpen className="h-4 w-4 text-white" />
             </span>
             <span className="text-base">
-              Repo<span className="text-violet-600">Narrator</span>
+              Code<span className="text-violet-600">Atlas</span>
             </span>
             <Badge variant="violet" className="ml-1 gap-1">
               <ShieldCheck className="h-3 w-3" />

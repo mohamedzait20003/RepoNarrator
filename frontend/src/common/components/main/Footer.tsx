@@ -29,7 +29,7 @@ export function Footer() {
                 <BookOpen className="h-3.5 w-3.5 text-white" />
               </span>
               <span className="text-sm">
-                Repo<span className="text-violet-600">Narrator</span>
+                Code<span className="text-violet-600">Atlas</span>
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">

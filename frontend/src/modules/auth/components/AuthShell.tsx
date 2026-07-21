@@ -41,7 +41,7 @@ export function AuthShell({ title, subtitle, children, footer }: AuthShellProps)
             <BookOpen className="h-5 w-5 text-white" />
           </span>
           <span className="text-lg">
-            Repo<span className="text-violet-600">Narrator</span>
+            Code<span className="text-violet-600">Atlas</span>
           </span>
         </Link>
 
