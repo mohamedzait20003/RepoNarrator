@@ -27,7 +27,7 @@ export function MissionSection() {
               just the ones who happen to enjoy writing.
             </p>
             <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-              RepoNarrator exists to close that gap — one repository at a time.
+              CodeAtlas exists to close that gap — one repository at a time.
             </p>
           </div>
         </div>

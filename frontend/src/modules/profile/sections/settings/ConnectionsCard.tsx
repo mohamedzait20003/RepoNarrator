@@ -21,7 +21,7 @@ export function ConnectionsCard() {
       <CardHeader>
         <CardTitle>Connections</CardTitle>
         <CardDescription>
-          Link the accounts RepoNarrator reads from and pushes to.
+          Link the accounts CodeAtlas reads from and pushes to.
         </CardDescription>
       </CardHeader>
       <CardContent>

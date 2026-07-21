@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "0.0.1",
-  "description": "RepoNarrator API — NestJS + TypeORM",
+  "description": "CodeAtlas API — NestJS + TypeORM",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

@@ -30,9 +30,9 @@ const METHODS: ContactMethod[] = [
   {
     icon: Mail,
     label: "Email us",
-    value: "hello@reponarrator.com",
+    value: "hello@codeatlas.com",
     note: "Best for detailed questions",
-    href: "mailto:hello@reponarrator.com",
+    href: "mailto:hello@codeatlas.com",
   },
   {
     icon: Clock,
@@ -43,9 +43,9 @@ const METHODS: ContactMethod[] = [
   {
     icon: FaGithub,
     label: "GitHub",
-    value: "mohamedzait20003/RepoNarrator",
+    value: "mohamedzait20003/CodeAtlas",
     note: "Bugs & feature requests",
-    href: "https://github.com/mohamedzait20003/RepoNarrator",
+    href: "https://github.com/mohamedzait20003/CodeAtlas",
   },
 ];
 

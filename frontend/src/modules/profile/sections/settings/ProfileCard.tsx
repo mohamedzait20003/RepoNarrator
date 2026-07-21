@@ -31,7 +31,7 @@ export function ProfileCard() {
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>
-          How your name appears across RepoNarrator.
+          How your name appears across CodeAtlas.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">

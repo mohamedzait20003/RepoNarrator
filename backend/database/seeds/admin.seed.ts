@@ -13,7 +13,7 @@ const BCRYPT_ROUNDS = 12;
  * Credentials come from the environment (with dev defaults):
  *   SEED_ADMIN_EMAIL     (default admin@<ADMIN_EMAIL_DOMAIN>)
  *   SEED_ADMIN_PASSWORD  (default ChangeMe!123 — change it immediately)
- *   SEED_ADMIN_NAME      (default "RepoNarrator Admin")
+ *   SEED_ADMIN_NAME      (default "CodeAtlas Admin")
  *
  * This is the only path that creates admin accounts: normal sign-up rejects the
  * admin email domain, so support / super_admin users must be seeded (or, later,
@@ -23,10 +23,10 @@ export async function seedAdmin(dataSource: DataSource): Promise<void> {
   const users = dataSource.getRepository(User);
   const profiles = dataSource.getRepository(UserProfile);
 
-  const domain = process.env.ADMIN_EMAIL_DOMAIN ?? 'reponarratoradmin.com';
+  const domain = process.env.ADMIN_EMAIL_DOMAIN ?? 'codeatlasadmin.com';
   const email = process.env.SEED_ADMIN_EMAIL ?? `admin@${domain}`;
   const password = process.env.SEED_ADMIN_PASSWORD ?? 'ChangeMe!123';
-  const name = process.env.SEED_ADMIN_NAME ?? 'RepoNarrator Admin';
+  const name = process.env.SEED_ADMIN_NAME ?? 'CodeAtlas Admin';
 
   if (!email.endsWith(`@${domain}`)) {
     throw new Error(`SEED_ADMIN_EMAIL must belong to @${domain}.`);

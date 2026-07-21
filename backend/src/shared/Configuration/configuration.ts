@@ -36,7 +36,7 @@ export default () => ({
     tokenEncryptionKey: process.env.TOKEN_ENCRYPTION_KEY ?? '',
 
     /** Required email domain suffix for support / super_admin role accounts. */
-    adminEmailDomain: process.env.ADMIN_EMAIL_DOMAIN ?? 'reponarratoradmin.com',
+    adminEmailDomain: process.env.ADMIN_EMAIL_DOMAIN ?? 'codeatlasadmin.com',
 
     github: {
       clientId: process.env.GITHUB_CLIENT_ID ?? '',
@@ -70,8 +70,8 @@ export default () => ({
     secure: process.env.MAIL_SECURE === 'true',
     username: process.env.MAIL_USERNAME ?? '',
     password: process.env.MAIL_PASSWORD ?? '',
-    fromEmail: process.env.MAIL_FROM_EMAIL ?? 'noreply@reponarrator.com',
-    fromName: process.env.MAIL_FROM_NAME ?? 'RepoNarrator',
+    fromEmail: process.env.MAIL_FROM_EMAIL ?? 'noreply@codeatlas.com',
+    fromName: process.env.MAIL_FROM_NAME ?? 'CodeAtlas',
     /** Filesystem directory for template overrides ({view}.hbs). */
     templatesPath: process.env.MAIL_TEMPLATES_PATH ?? '',
   },

@@ -8,7 +8,7 @@ export default function About() {
       <PageHeader
         eyebrow="Our story"
         title="We write the docs so you can write the code"
-        description="RepoNarrator was built by engineers who were tired of READMEs that either said nothing or sounded nothing like the person who wrote the software."
+        description="CodeAtlas was built by engineers who were tired of READMEs that either said nothing or sounded nothing like the person who wrote the software."
       />
       <MissionSection />
       <ValuesSection />

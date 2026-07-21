@@ -1,8 +1,8 @@
-# RepoNarrator
+# CodeAtlas
 
 AI-generated GitHub READMEs, informed by your resume.
 
-Users connect a GitHub account and supply a resume (upload or shared link). RepoNarrator reads
+Users connect a GitHub account and supply a resume (upload or shared link). CodeAtlas reads
 their repositories and uses LangChain to generate or improve each project's README — matching
 the writing to the user's real skills and voice — then pushes it back as a pull request or a
 direct commit.
@@ -13,7 +13,7 @@ direct commit.
 lockfile, and dependencies. Nothing is shared between them; install and run each separately.
 
 ```
-reponarrator/
+codeatlas/
 ├── frontend/                  # TanStack Start + React 19, shadcn/ui, Tailwind v4
 └── backend/                   # NestJS + TypeORM (PostgreSQL) — modular monolith
     ├── database/
@@ -77,5 +77,5 @@ and `REDIS_URL` at whatever instances you run locally.
 ## Admin access
 
 Admin privileges are **role-based**, not a separate table — the `users.role` enum
-(`user`, `support`, `super_admin`) governs access. The `@reponarratoradmin.com` email domain is
+(`user`, `support`, `super_admin`) governs access. The `@codeatlasadmin.com` email domain is
 reserved for admin accounts: public sign-up with that domain is rejected by the auth service.

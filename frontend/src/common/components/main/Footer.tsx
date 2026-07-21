@@ -37,7 +37,7 @@ export function Footer() {
             </p>
             <div className="mt-4 flex gap-3">
               <a
-                href="https://github.com/mohamedzait20003/RepoNarrator"
+                href="https://github.com/mohamedzait20003/CodeAtlas"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="GitHub"
@@ -85,7 +85,7 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border pt-6 sm:flex-row">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} RepoNarrator. All rights reserved.
+            © {new Date().getFullYear()} CodeAtlas. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground">Built for developers, by developers.</p>
         </div>

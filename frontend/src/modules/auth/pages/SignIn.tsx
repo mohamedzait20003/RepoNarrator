@@ -7,7 +7,7 @@ export default function SignIn() {
   return (
     <AuthShell
       title="Welcome back"
-      subtitle="Sign in to continue to RepoNarrator"
+      subtitle="Sign in to continue to CodeAtlas"
       footer={
         <>
           New here?{" "}

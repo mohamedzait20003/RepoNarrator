@@ -32,7 +32,7 @@ export function FeaturesSection() {
             Documentation that speaks your language
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Three things that make RepoNarrator different.
+            Three things that make CodeAtlas different.
           </p>
         </div>
 

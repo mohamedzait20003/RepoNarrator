@@ -25,7 +25,7 @@ export class MailFactory extends BaseQueueFactory<EmailJobPayload> {
   ): Promise<void> {
     await this.enqueue({
       to: { email, name: name ?? email },
-      subject: 'Verify your RepoNarrator email',
+      subject: 'Verify your CodeAtlas email',
       view: 'verify-email',
       data: { name: name ?? '', url: verificationUrl },
     });
@@ -38,7 +38,7 @@ export class MailFactory extends BaseQueueFactory<EmailJobPayload> {
   ): Promise<void> {
     await this.enqueue({
       to: { email, name: name ?? email },
-      subject: 'Reset your RepoNarrator password',
+      subject: 'Reset your CodeAtlas password',
       view: 'password-reset',
       data: { url: resetUrl },
     });

@@ -39,7 +39,7 @@ export class GithubCommitService {
         method: 'PUT',
         headers: this.headers(token),
         body: JSON.stringify({
-          message: 'Update profile README via RepoNarrator',
+          message: 'Update profile README via CodeAtlas',
           content: Buffer.from(content, 'utf8').toString('base64'),
           branch,
           ...(sha ? { sha } : {}),
@@ -94,7 +94,7 @@ export class GithubCommitService {
       headers: this.headers(token),
       body: JSON.stringify({
         name: login,
-        description: 'My GitHub profile — narrated by RepoNarrator.',
+        description: 'My GitHub profile — narrated by CodeAtlas.',
         auto_init: true,
       }),
     });

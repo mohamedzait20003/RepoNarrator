@@ -26,7 +26,7 @@ export function HeroSection() {
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-          RepoNarrator reads your repositories and your resume, then writes READMEs that sound
+          CodeAtlas reads your repositories and your resume, then writes READMEs that sound
           like you — not a template. Connect GitHub, share your story, ship better docs.
         </p>
 

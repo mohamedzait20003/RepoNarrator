@@ -20,7 +20,7 @@ interface AuthShellProps {
 
 /**
  * Full-screen, centered layout shared by every auth page — ambient brand glow,
- * the RepoNarrator mark, and a card that holds the page's form/content.
+ * the CodeAtlas mark, and a card that holds the page's form/content.
  */
 export function AuthShell({ title, subtitle, children, footer }: AuthShellProps) {
   return (

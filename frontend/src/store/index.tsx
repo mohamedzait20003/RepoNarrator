@@ -18,7 +18,7 @@ export const useStore = create<StoreState>()(
         }))
       ),
       {
-        name: "reponarrator-store",
+        name: "codeatlas-store",
         partialize: (state) => ({
           accessToken: state.accessToken,
           userRole: state.userRole,
@@ -28,7 +28,7 @@ export const useStore = create<StoreState>()(
         }),
       }
     ),
-    { name: "ReponarratorStore" }
+    { name: "CodeAtlasStore" }
   )
 );
 

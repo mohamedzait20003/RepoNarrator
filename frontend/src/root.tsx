@@ -11,7 +11,7 @@ import { HeadContent, Scripts, Outlet, useRouterState, createRootRouteWithContex
 import { useStore } from "@/store";
 import { Navbar, Footer, ContentSkeleton } from "@/common/components/main";
 
-const THEME_INIT = `(function(){try{var s=localStorage.getItem("reponarrator-store");if(s&&JSON.parse(s).state.mode==="dark"){document.documentElement.classList.add("dark");}}catch(e){}})();`;
+const THEME_INIT = `(function(){try{var s=localStorage.getItem("codeatlas-store");if(s&&JSON.parse(s).state.mode==="dark"){document.documentElement.classList.add("dark");}}catch(e){}})();`;
 
 const RootDocument = ({ children }: Readonly<{ children: ReactNode }>) => {
     return (
@@ -74,7 +74,7 @@ export const rootRoute = createRootRouteWithContext<{ queryClient: QueryClient }
         meta: [
             { charSet: "utf-8" },
             { name: "viewport", content: "width=device-width, initial-scale=1" },
-            { title: "RepoNarrator" },
+            { title: "CodeAtlas" },
         ],
         links: [
             { rel: "stylesheet", href: cssHref },
