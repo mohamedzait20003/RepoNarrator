@@ -16,7 +16,7 @@ import { GenerationStatus } from '@/shared/Domain/enums/generation-status.enum';
 import { PushMode } from '@/shared/Domain/enums/push-mode.enum';
 import { tierWithin } from '@/shared/Domain/enums/model-tier.enum';
 import { GithubCommitService } from '@/modules/generations/services/github-commit.service';
-import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
+import { ProfileGenerationFactory } from '@/modules/generations/factories/profile-generation.factory';
 import type { StartNarrationDto } from '@/modules/generations/dto/start-narration.dto';
 import type {
   CommitView,
@@ -26,7 +26,7 @@ import type {
 
 /**
  * "Narrate Yourself" job lifecycle. Resolves the user's plan + model (catalog,
- * tier-gated), records the run and enqueues it via {@link NarrationFactory}, and
+ * tier-gated), records the run and enqueues it via {@link ProfileGenerationFactory}, and
  * reports status for polling. The profile-narration quota is reserved upstream
  * by the {@link Quota} decorator on the controller.
  */
@@ -37,7 +37,7 @@ export class NarrationService {
     private readonly generations: Repository<Generation>,
     @InjectRepository(AiModel) private readonly aiModels: Repository<AiModel>,
     private readonly plans: PlanService,
-    private readonly narrations: NarrationFactory,
+    private readonly queue: ProfileGenerationFactory,
     private readonly github: GithubCommitService,
   ) {}
 
@@ -62,7 +62,7 @@ export class NarrationService {
       }),
     );
 
-    await this.narrations.queue(generation.id);
+    await this.queue.queue(generation.id);
     return { Id: generation.id };
   }
 

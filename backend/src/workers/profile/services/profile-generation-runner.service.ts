@@ -11,23 +11,23 @@ import {
   type PhaseHook,
   type UsageField,
 } from '@/workers/shared/generation-runner.base';
-import { NarrationContextService } from './narration-context.service';
-import { NarrationAgentService } from './narration-agent.service';
+import { ProfileContextService } from './profile-context.service';
+import { ProfileReadmeAgentService } from './profile-readme-agent.service';
 
 /**
  * "Narrate Yourself" worker: aggregates the user's résumé + all their repos and
  * runs the profile agent to produce a GitHub profile README. Consumes the
- * `narration` queue. Shared job lifecycle lives in {@link GenerationRunner}.
+ * `profile-generation` queue. Shared job lifecycle lives in {@link GenerationRunner}.
  */
 @Injectable()
-export class NarrationRunner extends GenerationRunner {
+export class ProfileGenerationRunner extends GenerationRunner {
   protected readonly usageField: UsageField = 'profileNarrationsUsed';
 
   constructor(
     @InjectRepository(Generation) generations: Repository<Generation>,
     @InjectRepository(UsageCounter) usage: Repository<UsageCounter>,
-    private readonly context: NarrationContextService,
-    private readonly agent: NarrationAgentService,
+    private readonly context: ProfileContextService,
+    private readonly agent: ProfileReadmeAgentService,
   ) {
     super(generations, usage);
   }

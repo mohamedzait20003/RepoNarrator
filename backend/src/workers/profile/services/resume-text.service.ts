@@ -14,7 +14,7 @@ const DOCX_MIME =
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 /**
- * Extracts plain text from a saved résumé for the narration agent. Uploaded
+ * Extracts plain text from a saved résumé for the profile agent. Uploaded
  * files are fetched from R2 and parsed (PDF / Word); the result is cached in
  * `parsed_text` so re-runs skip the download + parse. Link résumés are passed
  * through as a note (we don't fetch arbitrary user URLs — SSRF).

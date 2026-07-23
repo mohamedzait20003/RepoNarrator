@@ -6,7 +6,7 @@ import { User } from '@/modules/identity/entities/user.entity';
 import { Resume } from '@/modules/resumes/entities/resume.entity';
 import { ResumeTextService } from './resume-text.service';
 import { GithubReaderService } from './github-reader.service';
-import type { NarrationContext } from '../context/narration-context';
+import type { ProfileContext } from '../context/profile-context';
 
 /**
  * Assembles everything the "Narrate Yourself" agent reads: the user's latest
@@ -15,7 +15,7 @@ import type { NarrationContext } from '../context/narration-context';
  * yields nulls rather than failing the run.
  */
 @Injectable()
-export class NarrationContextService {
+export class ProfileContextService {
   constructor(
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Resume) private readonly resumes: Repository<Resume>,
@@ -23,7 +23,7 @@ export class NarrationContextService {
     private readonly github: GithubReaderService,
   ) {}
 
-  async gather(userId: string): Promise<NarrationContext> {
+  async gather(userId: string): Promise<ProfileContext> {
     const [user, resume] = await Promise.all([
       this.users.findOne({ where: { id: userId } }),
       this.resumes.findOne({

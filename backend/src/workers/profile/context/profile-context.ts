@@ -1,4 +1,4 @@
-/** A repository summarised for the narration agent (metadata + README excerpt). */
+/** A repository summarised for the profile agent (metadata + README excerpt). */
 export interface RepoContext {
   name: string;
   fullName: string;
@@ -10,7 +10,7 @@ export interface RepoContext {
 }
 
 /** Everything the agent reads to (re)write the profile README. */
-export interface NarrationContext {
+export interface ProfileContext {
   githubLogin: string | null;
   githubConnected: boolean;
   /** Extracted résumé text (uploads) or a link note; null when there's no résumé. */

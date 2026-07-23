@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { User } from '@/modules/identity/entities/user.entity';
 import { EncryptionService } from '@/modules/identity/services/encryption.service';
-import type { RepoContext } from '../context/narration-context';
+import type { RepoContext } from '../context/profile-context';
 
 const GH = 'https://api.github.com';
 const MAX_REPOS = 6;
@@ -40,7 +40,7 @@ function buildStatsEmbeds(login: string): string {
 }
 
 /**
- * Reads a user's GitHub content for the narration agent — the profile-repo
+ * Reads a user's GitHub content for the profile agent — the profile-repo
  * README plus their top projects (metadata + README excerpts). Uses the stored,
  * decrypted OAuth token; server-side only.
  */

@@ -24,6 +24,6 @@ State channels: `context`, `intent`, `plan`, `draft`, `critique`, `revisions`,
 `approved`. Node names differ from channel names (LangGraph rule): the nodes are
 `analyze` / `write` / `review`.
 
-Implemented in `../../services/narration-agent.service.ts`; the role prompts are
+Implemented in `../../services/profile-readme-agent.service.ts`; the role prompts are
 assembled by `../../context/profile.prompts.ts` (via the shared
 `src/workers/shared/agent/card-loader.ts`).

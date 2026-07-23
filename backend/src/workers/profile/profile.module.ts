@@ -10,9 +10,9 @@ import { R2StorageService } from '@/modules/resumes/services/r2-storage.service'
 import { LlmProviderFactory } from '@/shared/Factories/llm-provider.factory';
 import { ResumeTextService } from './services/resume-text.service';
 import { GithubReaderService } from './services/github-reader.service';
-import { NarrationContextService } from './services/narration-context.service';
-import { NarrationAgentService } from './services/narration-agent.service';
-import { NarrationRunner } from './services/narration-runner.service';
+import { ProfileContextService } from './services/profile-context.service';
+import { ProfileReadmeAgentService } from './services/profile-readme-agent.service';
+import { ProfileGenerationRunner } from './services/profile-generation-runner.service';
 
 /**
  * "Narrate Yourself" (profile README) worker providers. The DB connection +
@@ -23,15 +23,15 @@ import { NarrationRunner } from './services/narration-runner.service';
 @Module({
   imports: [TypeOrmModule.forFeature([Generation, UsageCounter, User, Resume])],
   providers: [
-    NarrationRunner,
-    NarrationContextService,
+    ProfileGenerationRunner,
+    ProfileContextService,
     GithubReaderService,
     ResumeTextService,
     R2StorageService,
     EncryptionService,
     LlmProviderFactory,
-    NarrationAgentService,
+    ProfileReadmeAgentService,
   ],
-  exports: [NarrationRunner],
+  exports: [ProfileGenerationRunner],
 })
-export class NarrationWorkerModule {}
+export class ProfileWorkerModule {}

@@ -1,7 +1,7 @@
 ---
 id: resume-reader
 title: Résumé reader
-implemented_by: workers/narration/services/resume-text.service.ts
+implemented_by: src/workers/profile/services/resume-text.service.ts
 ---
 Extracts plain text from the user's most recent résumé (PDF via `pdf-parse`,
 DOCX via `mammoth`) or a résumé-link note. Produces the **résumé** section of the

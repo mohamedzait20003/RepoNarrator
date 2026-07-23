@@ -23,7 +23,7 @@ import { NarrationController } from '@/modules/generations/controllers/narration
 import { NarrationService } from '@/modules/generations/services/narration.service';
 import { NarrationTailorService } from '@/modules/generations/services/narration-tailor.service';
 import { GithubCommitService } from '@/modules/generations/services/github-commit.service';
-import { NarrationFactory } from '@/modules/generations/factories/narration.factory';
+import { ProfileGenerationFactory } from '@/modules/generations/factories/profile-generation.factory';
 import { RepoGenerationFactory } from '@/modules/generations/factories/repo-generation.factory';
 import { AiModelsController } from '@/modules/generations/controllers/ai-models.controller';
 import { AiModelsService } from '@/modules/generations/services/ai-models.service';
@@ -53,7 +53,7 @@ import { AiModelsService } from '@/modules/generations/services/ai-models.servic
     NarrationService,
     NarrationTailorService,
     GithubCommitService,
-    NarrationFactory,
+    ProfileGenerationFactory,
     RepoGenerationFactory,
     AiModelsService,
     LlmProviderFactory,

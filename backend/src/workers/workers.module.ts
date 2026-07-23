@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import configuration from '@/shared/Configuration/configuration';
 import { ENTITIES } from '@/shared/Database/entities';
 import { MailWorkerModule } from './mail/mail.module';
-import { NarrationWorkerModule } from './narration/narration.module';
+import { ProfileWorkerModule } from './profile/profile.module';
 import { RepoWorkerModule } from './repo/repo.module';
 
 /**
@@ -27,7 +27,7 @@ import { RepoWorkerModule } from './repo/repo.module';
       }),
     }),
     MailWorkerModule,
-    NarrationWorkerModule,
+    ProfileWorkerModule,
     RepoWorkerModule,
   ],
 })

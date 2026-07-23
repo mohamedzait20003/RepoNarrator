@@ -5,7 +5,7 @@ import { SenderService } from './services/sender.service';
 
 /**
  * Mail worker providers. Config + Redis are supplied by the parent
- * {@link WorkersModule}, which runs this alongside the narration worker.
+ * {@link WorkersModule}, which runs this alongside the profile + repo workers.
  */
 @Module({
   providers: [RendererService, SenderService],

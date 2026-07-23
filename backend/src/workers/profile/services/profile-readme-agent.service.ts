@@ -21,12 +21,12 @@ import {
   writerInput,
   reviewerInput,
 } from '../context/profile.prompts';
-import type { NarrationContext } from '../context/narration-context';
+import type { ProfileContext } from '../context/profile-context';
 
 const MAX_REVISIONS = 2;
 
 export interface AgentInput {
-  context: NarrationContext;
+  context: ProfileContext;
   intent: string | null;
   provider: LlmProvider;
   modelId: string;
@@ -39,9 +39,9 @@ export interface AgentResult {
   outputTokens: number;
 }
 
-/** LangGraph state for the narration flow. */
-const NarrationState = Annotation.Root({
-  context: Annotation<NarrationContext>(),
+/** LangGraph state for the profile flow. */
+const ProfileState = Annotation.Root({
+  context: Annotation<ProfileContext>(),
   intent: Annotation<string | null>(),
   resumeProfile: Annotation<string>(),
   repoProfile: Annotation<string>(),
@@ -52,7 +52,7 @@ const NarrationState = Annotation.Root({
   approved: Annotation<boolean>(),
 });
 
-type NarrationStateType = typeof NarrationState.State;
+type ProfileStateType = typeof ProfileState.State;
 
 /**
  * The "Narrate Yourself" agent: a LangGraph state machine that analyzes the
@@ -66,7 +66,7 @@ type NarrationStateType = typeof NarrationState.State;
  * The two analysts run in parallel (fan-out from START) and fan in to the planner.
  */
 @Injectable()
-export class NarrationAgentService {
+export class ProfileReadmeAgentService {
   constructor(private readonly factory: LlmProviderFactory) {}
 
   async run(input: AgentInput): Promise<AgentResult> {
@@ -81,8 +81,8 @@ export class NarrationAgentService {
     };
 
     const resumeAnalyst = async (
-      s: NarrationStateType,
-    ): Promise<Partial<NarrationStateType>> => {
+      s: ProfileStateType,
+    ): Promise<Partial<ProfileStateType>> => {
       await input.onPhase?.('analyzing');
       return {
         resumeProfile: await call([
@@ -93,8 +93,8 @@ export class NarrationAgentService {
     };
 
     const repoAnalyst = async (
-      s: NarrationStateType,
-    ): Promise<Partial<NarrationStateType>> => {
+      s: ProfileStateType,
+    ): Promise<Partial<ProfileStateType>> => {
       await input.onPhase?.('analyzing');
       return {
         repoProfile: await call([
@@ -105,8 +105,8 @@ export class NarrationAgentService {
     };
 
     const analyze = async (
-      s: NarrationStateType,
-    ): Promise<Partial<NarrationStateType>> => {
+      s: ProfileStateType,
+    ): Promise<Partial<ProfileStateType>> => {
       await input.onPhase?.('analyzing');
       return {
         plan: await call([
@@ -119,8 +119,8 @@ export class NarrationAgentService {
     };
 
     const draft = async (
-      s: NarrationStateType,
-    ): Promise<Partial<NarrationStateType>> => {
+      s: ProfileStateType,
+    ): Promise<Partial<ProfileStateType>> => {
       await input.onPhase?.('drafting');
       return {
         draft: await call([
@@ -141,8 +141,8 @@ export class NarrationAgentService {
     };
 
     const critique = async (
-      s: NarrationStateType,
-    ): Promise<Partial<NarrationStateType>> => {
+      s: ProfileStateType,
+    ): Promise<Partial<ProfileStateType>> => {
       await input.onPhase?.('reviewing');
       const text = await call([
         new SystemMessage(REVIEWER_PROMPT),
@@ -152,10 +152,10 @@ export class NarrationAgentService {
     };
 
     // Node names must differ from state channels (draft/critique) — LangGraph rule.
-    const route = (s: NarrationStateType): 'write' | typeof END =>
+    const route = (s: ProfileStateType): 'write' | typeof END =>
       s.approved || s.revisions >= MAX_REVISIONS ? END : 'write';
 
-    const graph = new StateGraph(NarrationState)
+    const graph = new StateGraph(ProfileState)
       .addNode('resume', resumeAnalyst)
       .addNode('repos', repoAnalyst)
       .addNode('analyze', analyze)

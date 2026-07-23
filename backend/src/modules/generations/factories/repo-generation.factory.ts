@@ -11,7 +11,7 @@ export const REPO_GENERATION_QUEUE = 'repo-generation';
 
 /**
  * Queue for "Narrate about Repos" jobs. Kept separate from the profile
- * {@link NarrationFactory} so repo-README generation runs on its own worker with
+ * {@link ProfileGenerationFactory} so repo-README generation runs on its own worker with
  * independent concurrency — a burst of repo jobs never starves profile narrations.
  */
 @Injectable()

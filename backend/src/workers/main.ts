@@ -4,9 +4,9 @@ import { Worker, type Job } from 'bullmq';
 import { Redis, type RedisOptions } from 'ioredis';
 
 import {
-  NARRATION_QUEUE,
-  type NarrationJob,
-} from '@/modules/generations/factories/narration.factory';
+  PROFILE_GENERATION_QUEUE,
+  type ProfileGenerationJob,
+} from '@/modules/generations/factories/profile-generation.factory';
 import {
   REPO_GENERATION_QUEUE,
   type RepoGenerationJob,
@@ -14,7 +14,7 @@ import {
 import { WorkersModule } from './workers.module';
 import { RendererService } from './mail/services/renderer.service';
 import { SenderService } from './mail/services/sender.service';
-import { NarrationRunner } from './narration/services/narration-runner.service';
+import { ProfileGenerationRunner } from './profile/services/profile-generation-runner.service';
 import { RepoGenerationRunner } from './repo/services/repo-generation-runner.service';
 import type { EmailJobPayload } from './mail/types';
 
@@ -26,7 +26,7 @@ const REDIS_OPTS: RedisOptions = {
 const intEnv = (name: string, fallback: number): number =>
   parseInt(process.env[name] ?? String(fallback), 10);
 
-/** Boots one Nest context and starts every background worker (mail + narration + repo). */
+/** Boots one Nest context and starts every background worker (mail + profile + repo). */
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.createApplicationContext(WorkersModule, {
     logger: ['log', 'warn', 'error'],
@@ -34,13 +34,13 @@ async function bootstrap(): Promise<void> {
 
   const renderer = app.get(RendererService);
   const sender = app.get(SenderService);
-  const runner = app.get(NarrationRunner);
+  const profileRunner = app.get(ProfileGenerationRunner);
   const repoRunner = app.get(RepoGenerationRunner);
 
   const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
   // Each worker gets its own connection (bullmq uses blocking commands).
   const mailConnection = new Redis(redisUrl, REDIS_OPTS);
-  const narrationConnection = new Redis(redisUrl, REDIS_OPTS);
+  const profileConnection = new Redis(redisUrl, REDIS_OPTS);
   const repoConnection = new Redis(redisUrl, REDIS_OPTS);
 
   const mailWorker = new Worker<EmailJobPayload>(
@@ -57,14 +57,14 @@ async function bootstrap(): Promise<void> {
     },
   );
 
-  const narrationWorker = new Worker<NarrationJob>(
-    NARRATION_QUEUE,
-    async (job: Job<NarrationJob>) => {
-      await runner.run(job.data.generationId);
+  const profileWorker = new Worker<ProfileGenerationJob>(
+    PROFILE_GENERATION_QUEUE,
+    async (job: Job<ProfileGenerationJob>) => {
+      await profileRunner.run(job.data.generationId);
     },
     {
-      connection: narrationConnection,
-      concurrency: intEnv('NARRATION_WORKER_CONCURRENCY', 2),
+      connection: profileConnection,
+      concurrency: intEnv('PROFILE_WORKER_CONCURRENCY', 2),
       removeOnComplete: { count: 100 },
       removeOnFail: { count: 100 },
     },
@@ -86,24 +86,24 @@ async function bootstrap(): Promise<void> {
   mailWorker.on('failed', (job, err) =>
     console.error(`[workers:mail] ✗ ${job?.id}: ${err.message}`),
   );
-  narrationWorker.on('failed', (job, err) =>
-    console.error(`[workers:narration] ✗ ${job?.id}: ${err.message}`),
+  profileWorker.on('failed', (job, err) =>
+    console.error(`[workers:profile] ✗ ${job?.id}: ${err.message}`),
   );
   repoWorker.on('failed', (job, err) =>
     console.error(`[workers:repo] ✗ ${job?.id}: ${err.message}`),
   );
 
-  console.log('[workers] Ready — mail + narration + repo');
+  console.log('[workers] Ready — mail + profile + repo');
 
   const shutdown = async () => {
     await Promise.all([
       mailWorker.close(),
-      narrationWorker.close(),
+      profileWorker.close(),
       repoWorker.close(),
     ]);
     await Promise.all([
       mailConnection.quit(),
-      narrationConnection.quit(),
+      profileConnection.quit(),
       repoConnection.quit(),
     ]);
     await app.close();

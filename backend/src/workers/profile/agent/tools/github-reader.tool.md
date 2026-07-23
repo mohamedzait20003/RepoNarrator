@@ -1,7 +1,7 @@
 ---
 id: github-reader
 title: GitHub reader
-implemented_by: workers/narration/services/github-reader.service.ts
+implemented_by: src/workers/profile/services/github-reader.service.ts
 ---
 Reads, with the user's decrypted OAuth token: the current profile README (the
 `owner/owner` repo) and the user's top public repositories (name, description,
