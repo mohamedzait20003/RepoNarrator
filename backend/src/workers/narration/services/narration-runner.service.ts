@@ -10,7 +10,7 @@ import {
   type AgentOutput,
   type PhaseHook,
   type UsageField,
-} from '../../generation-runner.base';
+} from '@/workers/shared/generation-runner.base';
 import { NarrationContextService } from './narration-context.service';
 import { NarrationAgentService } from './narration-agent.service';
 

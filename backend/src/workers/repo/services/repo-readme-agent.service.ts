@@ -14,8 +14,8 @@ import {
   REPO_REVIEWER_PROMPT,
   repoWriterInput,
   repoReviewerInput,
-} from '../../narration/context/agent.loader';
-import type { RepoReadmeContext } from '../../narration/context/narration-context';
+} from '../context/repo.prompts';
+import type { RepoReadmeContext } from '../context/repo-context';
 
 const MAX_REVISIONS = 2;
 

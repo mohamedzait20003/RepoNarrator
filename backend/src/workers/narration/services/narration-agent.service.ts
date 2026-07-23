@@ -20,7 +20,7 @@ import {
   plannerInput,
   writerInput,
   reviewerInput,
-} from '../context/agent.loader';
+} from '../context/profile.prompts';
 import type { NarrationContext } from '../context/narration-context';
 
 const MAX_REVISIONS = 2;

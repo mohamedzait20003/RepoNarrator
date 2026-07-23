@@ -1,88 +1,22 @@
-import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import type { NarrationContext, RepoReadmeContext } from './narration-context';
+import { makeAgentLoader } from '@/workers/shared/agent/card-loader';
+import type { NarrationContext } from './narration-context';
 
 /** Truncate a repo README when packing it into a synthesis prompt. */
 const REPO_README_IN_PROMPT = 1_500;
 
-/** The agent card tree (…/workers/narration/agent), a sibling of this file. The
- * worker runs from source, so `__dirname` resolves to the real tree and the
- * Markdown is read live. */
+/** This agent's card tree (…/narration/agent) + the shared cross-agent tree. */
 const AGENT_DIR = join(__dirname, '..', 'agent');
+const SHARED_DIR = join(__dirname, '..', '..', 'shared', 'agent');
+const assemble = makeAgentLoader(AGENT_DIR, SHARED_DIR);
 
-interface AgentCard {
-  meta: Map<string, string[]>;
-  body: string;
-}
-
-/**
- * Minimal front-matter parser: splits a leading `---` block from the body and
- * reads `key: value`, `key: [a, b]`, and `key:` + `- item` list forms. Kept
- * dependency-free on purpose — the cards only use simple scalar/list keys.
- */
-function parse(md: string): AgentCard {
-  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/.exec(md);
-  if (!match) return { meta: new Map(), body: md.trim() };
-
-  const meta = new Map<string, string[]>();
-  let current: string[] | null = null;
-  for (const line of match[1].split(/\r?\n/)) {
-    const kv = /^([\w-]+):\s*(.*)$/.exec(line);
-    const item = /^\s*-\s*(.+)$/.exec(line);
-    if (kv) {
-      const value = kv[2].trim();
-      let items: string[];
-      if (value.startsWith('[')) {
-        items = value
-          .slice(1, -1)
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean);
-      } else if (value) {
-        items = [value];
-      } else {
-        items = [];
-      }
-      current = items;
-      meta.set(kv[1], items);
-    } else if (item && current) {
-      current.push(item[1].trim());
-    }
-  }
-  return { meta, body: match[2].trim() };
-}
-
-function readCard(rel: string): AgentCard {
-  return parse(readFileSync(join(AGENT_DIR, rel), 'utf8'));
-}
-
-/** Compose an agent card's system prompt from its referenced knowledge + skills. */
-function assemble(agentFile: string): string {
-  const { meta, body } = readCard(`agents/${agentFile}`);
-  const sections = [body];
-
-  const knowledge = (meta.get('knowledge') ?? []).map(
-    (id) => readCard(`knowledge/${id}.md`).body,
-  );
-  if (knowledge.length) sections.push('# Operating principles', ...knowledge);
-
-  const skills = (meta.get('skills') ?? []).map(
-    (id) => readCard(`skills/${id}.md`).body,
-  );
-  if (skills.length) sections.push('# Skills', ...skills);
-
-  return sections.join('\n\n');
-}
-
-/** Role system prompts, assembled once at worker startup from the agent cards. */
+/** Profile ("Narrate Yourself") role prompts, assembled once at worker startup. */
 export const RESUME_ANALYST_PROMPT = assemble('resume-analyst.agent.md');
 export const REPO_ANALYST_PROMPT = assemble('repo-analyst.agent.md');
 export const PLANNER_PROMPT = assemble('planner.agent.md');
 export const WRITER_PROMPT = assemble('writer.agent.md');
 export const REVIEWER_PROMPT = assemble('reviewer.agent.md');
-export const REPO_WRITER_PROMPT = assemble('repo-writer.agent.md');
-export const REPO_REVIEWER_PROMPT = assemble('repo-reviewer.agent.md');
 
 // --- Human-turn builders: pack the working context into each role's input. ---
 
@@ -200,44 +134,4 @@ function contextBlock(ctx: NarrationContext): string {
   ]
     .filter(Boolean)
     .join('\n\n');
-}
-
-// --- Repo-README builders: pack one repository's content into the agent input. ---
-
-export function repoWriterInput(
-  context: RepoReadmeContext,
-  intent: string | null,
-  critique: string,
-): string {
-  const parts = [intentLine(intent)];
-  if (critique && !/\bAPPROVED\b/i.test(critique)) {
-    parts.push(`# Revision feedback\n${critique}`);
-  }
-  parts.push(repoContextBlock(context));
-  return parts.filter(Boolean).join('\n\n');
-}
-
-export function repoReviewerInput(
-  context: RepoReadmeContext,
-  draft: string,
-): string {
-  return [repoContextBlock(context), `# Draft README\n${draft}`].join('\n\n');
-}
-
-function repoContextBlock(ctx: RepoReadmeContext): string {
-  const parts = [
-    `# Repository: ${ctx.fullName}`,
-    `Description: ${ctx.description ?? '(none)'}`,
-    `Languages: ${ctx.languages.length ? ctx.languages.join(', ') : '(unknown)'}`,
-    `\n## Top-level files\n${
-      ctx.fileTree.length ? ctx.fileTree.join('\n') : '(none)'
-    }`,
-  ];
-  if (ctx.manifest) parts.push(`\n## Primary manifest\n${ctx.manifest}`);
-  parts.push(
-    ctx.readme
-      ? `\n## Current README\n${ctx.readme}`
-      : '\n## Current README\n(none yet)',
-  );
-  return parts.join('\n');
 }

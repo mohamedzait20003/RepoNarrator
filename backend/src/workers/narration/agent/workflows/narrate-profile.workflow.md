@@ -25,4 +25,5 @@ State channels: `context`, `intent`, `plan`, `draft`, `critique`, `revisions`,
 `analyze` / `write` / `review`.
 
 Implemented in `../../services/narration-agent.service.ts`; the role prompts are
-assembled by `../../context/agent.loader.ts`.
+assembled by `../../context/profile.prompts.ts` (via the shared
+`src/workers/shared/agent/card-loader.ts`).

@@ -11,7 +11,7 @@ import {
   type AgentOutput,
   type PhaseHook,
   type UsageField,
-} from '../../generation-runner.base';
+} from '@/workers/shared/generation-runner.base';
 import { RepoContentService } from './repo-content.service';
 import { RepoReadmeAgentService } from './repo-readme-agent.service';
 

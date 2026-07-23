@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 
 import { User } from '@/modules/identity/entities/user.entity';
 import { EncryptionService } from '@/modules/identity/services/encryption.service';
-import type { RepoReadmeContext } from '../../narration/context/narration-context';
+import type { RepoReadmeContext } from '../context/repo-context';
 
 const GH = 'https://api.github.com';
 const README_MAX = 6_000;
