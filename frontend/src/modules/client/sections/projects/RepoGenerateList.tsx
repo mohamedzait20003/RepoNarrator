@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
+  Cpu,
   Lock,
   Star,
   Github,
   Sparkles,
+  FileSearch,
+  PenLine,
+  ShieldCheck,
   ChevronLeft,
   ChevronRight,
   ServerCrash,
@@ -20,22 +24,62 @@ import {
   TableHead,
   TableCell,
 } from "@/common/components/ui/table";
-import { Card } from "@/common/components/ui/card";
+import { Card, CardContent } from "@/common/components/ui/card";
 import { Badge } from "@/common/components/ui/badge";
 import { Button } from "@/common/components/ui/button";
 import { Skeleton } from "@/common/components/ui/skeleton";
+import { Textarea } from "@/common/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/common/components/ui/select";
 import { useStore } from "@/store";
 import { useAccountName } from "@/lib/auth/account";
 import { useRepos } from "@/lib/hooks/useRepos";
+import { useAiModels } from "@/lib/hooks/useAiModels";
 import {
   useCommitRepoGeneration,
   useRepoGeneration,
   useStartRepoGeneration,
 } from "@/lib/hooks/useRepoGeneration";
 import { EmptyState } from "@/modules/client/components/EmptyState";
-import { PhaseProgress } from "@/modules/client/sections/narrate/PhaseProgress";
+import {
+  PhaseProgress,
+  type Step,
+} from "@/modules/client/sections/narrate/PhaseProgress";
 import { ReadmeEditor } from "@/modules/client/sections/narrate/ReadmeEditor";
 import type { RepoItem } from "@/lib/models/repoModel";
+
+/** The repo flow has no planning phase — read → write → review. */
+const REPO_STEPS: Step[] = [
+  {
+    key: "gathering",
+    label: "Reading the repository",
+    detail:
+      "Pulling the description, file tree, primary manifest, and current README.",
+    icon: FileSearch,
+  },
+  {
+    key: "drafting",
+    label: "Writing the README",
+    detail:
+      "Drafting features, tech stack, and getting-started from the real code.",
+    revisingLabel: "Revising the README",
+    revisingDetail: "Applying the reviewer's feedback and rewriting.",
+    icon: PenLine,
+  },
+  {
+    key: "reviewing",
+    label: "Reviewing & polishing",
+    detail: "Checking every claim against the repository's actual content.",
+    revisingLabel: "Re-reviewing the revision",
+    revisingDetail: "Re-checking the revised draft for accuracy.",
+    icon: ShieldCheck,
+  },
+];
 
 function updated(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -49,35 +93,56 @@ export function RepoGenerateList() {
   const linked = useStore((s) => s.userData?.githubLinked);
   const name = useAccountName();
   const [page, setPage] = useState(1);
+  const [setup, setSetup] = useState<{ id: string; fullName: string } | null>(
+    null,
+  );
+  const [intent, setIntent] = useState("");
+  const [modelId, setModelId] = useState("");
   const [gen, setGen] = useState<{ id: string; repo: string } | null>(null);
   const [draft, setDraft] = useState<string | null>(null);
   const [committedUrl, setCommittedUrl] = useState<string | null>(null);
 
   const { data, isLoading, isError, isPlaceholderData } = useRepos(page);
+  const { data: models = [] } = useAiModels();
   const start = useStartRepoGeneration();
   const commit = useCommitRepoGeneration();
   const { data: generation } = useRepoGeneration(gen?.id ?? null);
+
+  const defaultModelId =
+    models.find((m) => m.IsDefault)?.Id ?? models[0]?.Id ?? "";
+  const chosenModel = modelId || defaultModelId;
 
   const status = generation?.Status;
   const running = Boolean(gen) && status !== "completed" && status !== "failed";
   const failed = status === "failed";
   const completed = status === "completed";
 
-  const onGenerate = (repo: RepoItem) =>
+  const onPick = (repo: RepoItem) => {
+    setSetup({ id: repo.Id, fullName: repo.FullName });
+    setIntent("");
+    setModelId("");
+    start.reset();
+  };
+
+  const onStart = () => {
+    if (!setup) return;
     start.mutate(
-      { repoId: repo.Id },
+      { repoId: setup.id, intent, modelId: chosenModel || undefined },
       {
         onSuccess: (res) => {
           if (res.Data) {
             setDraft(null);
             setCommittedUrl(null);
-            setGen({ id: res.Data.Id, repo: repo.FullName });
+            setGen({ id: res.Data.Id, repo: setup.fullName });
+            setSetup(null);
           }
         },
       },
     );
+  };
 
   const onBack = () => {
+    setSetup(null);
     setGen(null);
     setDraft(null);
     setCommittedUrl(null);
@@ -113,6 +178,8 @@ export function RepoGenerateList() {
             phase={generation?.Phase ?? null}
             status={status ?? "queued"}
             model={generation?.Model ?? null}
+            steps={REPO_STEPS}
+            footnote="Nothing is pushed yet. When the draft is ready you'll review and edit every word before it's committed to the repository."
           />
         )}
 
@@ -144,6 +211,99 @@ export function RepoGenerateList() {
             commitError={commit.error?.message ?? null}
           />
         )}
+      </div>
+    );
+  }
+
+  // --- Setup: intent + model for the chosen repo. ---
+  if (setup) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            README for{" "}
+            <span className="font-medium text-foreground">
+              {setup.fullName}
+            </span>
+          </p>
+          <Button variant="outline" size="sm" className="gap-1" onClick={onBack}>
+            <ChevronLeft className="h-4 w-4" />
+            Back to repos
+          </Button>
+        </div>
+
+        <Card className="overflow-hidden">
+          <CardContent className="space-y-5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-violet-500 to-violet-700 text-white shadow-sm">
+                <FolderGit2 className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-base font-semibold text-foreground">
+                  Let's document this project
+                </p>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  We read the repository's code, manifest, and current README,
+                  then draft a project README grounded in what's actually there
+                  — you review every word before it's committed.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Anything to emphasize?{" "}
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
+              </label>
+              <Textarea
+                value={intent}
+                onChange={(e) => setIntent(e.target.value)}
+                placeholder={
+                  'e.g. "Aimed at first-time contributors — highlight setup steps and the plugin architecture."'
+                }
+                className="min-h-24"
+              />
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-2">
+                <Cpu className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Model</span>
+                <Select
+                  value={chosenModel}
+                  onValueChange={setModelId}
+                  disabled={models.length === 0}
+                >
+                  <SelectTrigger className="w-56">
+                    <SelectValue placeholder="Default" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {models.map((m) => (
+                      <SelectItem key={m.Id} value={m.Id}>
+                        {m.Name}
+                        {m.IsDefault ? " · default" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={onStart}
+                disabled={start.isPending}
+                className="gap-1.5 bg-violet-600 text-white hover:bg-violet-700"
+              >
+                <Sparkles className="h-4 w-4" />
+                {start.isPending ? "Starting…" : "Write the README"}
+              </Button>
+            </div>
+
+            {start.error && (
+              <p className="text-sm text-destructive">{start.error.message}</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -257,8 +417,7 @@ export function RepoGenerateList() {
                   <Button
                     size="sm"
                     className="gap-1.5 bg-violet-600 text-white hover:bg-violet-700"
-                    disabled={start.isPending}
-                    onClick={() => onGenerate(repo)}
+                    onClick={() => onPick(repo)}
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     Generate

@@ -15,7 +15,7 @@ import { Card, CardContent } from "@/common/components/ui/card";
 import { Progress } from "@/common/components/ui/progress";
 import type { NarrationStatus } from "@/lib/models/narrationModel";
 
-type Step = {
+export type Step = {
   key: string;
   label: string;
   detail: string;
@@ -60,12 +60,18 @@ export function PhaseProgress({
   phase,
   status,
   model,
+  steps = STEPS,
+  footnote = "Nothing is published yet. When the draft is ready you'll review and edit every word before it's committed to your profile.",
 }: {
   phase: string | null;
   status: NarrationStatus;
   model?: string | null;
+  /** Step list for this flow (defaults to the 4-step profile pipeline). */
+  steps?: Step[];
+  /** Reassurance line shown under the timeline. */
+  footnote?: string;
 }) {
-  const found = STEPS.findIndex((s) => s.key === phase);
+  const found = steps.findIndex((s) => s.key === phase);
   const starting =
     status === "queued" || !phase || phase === "queued" || found === -1;
   const current = starting ? 0 : found;
@@ -89,12 +95,12 @@ export function PhaseProgress({
   }
 
   const revising = round.current > 1;
-  const stepNumber = starting ? 1 : Math.min(current + 1, STEPS.length);
+  const stepNumber = starting ? 1 : Math.min(current + 1, steps.length);
 
   // Progress never moves backward, even when the loop returns to drafting.
   const rawPct = starting
     ? 6
-    : Math.round(((current + 0.5) / STEPS.length) * 100);
+    : Math.round(((current + 0.5) / steps.length) * 100);
   maxPct.current = Math.max(maxPct.current, rawPct);
   const pct = maxPct.current;
 
@@ -139,7 +145,7 @@ export function PhaseProgress({
               </span>
             ) : (
               <span className="text-xs font-medium text-muted-foreground">
-                Step {stepNumber} of {STEPS.length}
+                Step {stepNumber} of {steps.length}
               </span>
             )}
           </div>
@@ -150,10 +156,10 @@ export function PhaseProgress({
 
         {/* Timeline */}
         <ol>
-          {STEPS.map((s, i) => {
+          {steps.map((s, i) => {
             const done = !starting && i < current;
             const active = i === current;
-            const last = i === STEPS.length - 1;
+            const last = i === steps.length - 1;
             const loopStep =
               revising && (s.key === "drafting" || s.key === "reviewing");
             const label = loopStep && s.revisingLabel ? s.revisingLabel : s.label;
@@ -230,8 +236,7 @@ export function PhaseProgress({
         <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Nothing is published yet. When the draft is ready you'll review and
-            edit every word before it's committed to your profile.
+            {footnote}
           </p>
         </div>
       </CardContent>
